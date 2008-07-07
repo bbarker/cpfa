@@ -28,7 +28,7 @@ class CBTree:
         # creates a new node and returns it
         return CNode(data, parent)
 #change the insertion method to insert by parent name, left node first
-    def insert(self, root, data):
+    def insert(self, root, data, parent):
         # inserts a new data
         if root == None:
             # it there isn't any data
@@ -36,12 +36,16 @@ class CBTree:
             return self.addNode(data, None)
         else:
             # enters into the tree
-            if data.endswith("a") or data.endswith("l"):
-                # if the data is less than the stored one
-                # goes into the left-sub-tree
+	    if parent.startswith(root.data):
+                loc = data.partition(rood.data)[2][0]
+                if loc == 'l' or loc == 'd' or loc == 'p':
+                    root.left = self.insert(root.left, data)
+                elif loc == 'r' or loc == 'v' or loc == 'a':
+                    # processes the right-sub-tree
+                    root.right = self.insert(root.right, data)
+	    elif root.left == None:
                 root.left = self.insert(root.left, data)
             else:
-                # processes the right-sub-tree
                 root.right = self.insert(root.right, data)
             return root
 #currently invalid, could modify lookup to do binary search based on systematic name and then do complete traversal
