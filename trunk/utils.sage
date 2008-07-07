@@ -19,7 +19,7 @@ class CNode:
         self.right = None
         self.data = data
 
-class CBOrdTree:
+class CBTree:
     def __init__(self):
         # initializes the root member
         self.root = None
@@ -106,7 +106,7 @@ class CBOrdTree:
 
 if __name__ == "__main__":
     # create the binary tree
-    BTree = CBOrdTree()
+    BTree = CBTree()
     # add the root node
     root = BTree.addNode(0)
     # ask the user to insert values
