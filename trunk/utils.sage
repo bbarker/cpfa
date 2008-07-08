@@ -10,7 +10,7 @@ import pprint
 # A binary ordered tree example
 
 class CNode:
-    parent, left, right, data = None, None, None, 0
+    parent, left, right, data = None, None, None, 0 
     
     def __init__(self, data, parent):
         # initializes the data members
@@ -23,7 +23,13 @@ class CBTree:
     def __init__(self):
         # initializes the root member
         self.root = None
-    
+        self.leaf = {}
+
+    def addLeaf(parent, data, newnode):
+        del self.leaf[parent]
+        self.leaf[data] = newnode
+         
+ 
     def addNode(self, data, parent):
         # creates a new node and returns it
         return CNode(data, parent)
@@ -39,13 +45,19 @@ class CBTree:
 	    if parent.startswith(root.data):
                 loc = data.partition(rood.data)[2][0]
                 if loc == 'l' or loc == 'd' or loc == 'p':
+                    self.addLeaf(parent, data, root.left)
                     root.left = self.insert(root.left, data)
                 elif loc == 'r' or loc == 'v' or loc == 'a':
                     # processes the right-sub-tree
+                    self.addLeaf(parent, data, root.right)
                     root.right = self.insert(root.right, data)
+                else:
+                    print "Error: Unhandled node: " + data + "\n"
 	    elif root.left == None:
+                self.addLeaf(parent, data, root.left)
                 root.left = self.insert(root.left, data)
             else:
+                self.addLeaf(parent, data, root.right)
                 root.right = self.insert(root.right, data)
             return root
 #currently invalid, could modify lookup to do binary search based on systematic name and then do complete traversal
