@@ -27,11 +27,13 @@ class CBTree:
 		self.leaf = {}
 
 	def addLeaf(self, parent, data, newnode):
+		print "1:"
 		print self.leaf
 		if parent != None:
 			del self.leaf[parent]
 		self.leaf[data] = newnode
-            
+		print "2:" 
+		print self.leaf
  
 	def addNode(self, data, parent):
 		# creates a new node and returns it
@@ -86,9 +88,11 @@ class CBTree:
 		loc = data.replace(root.data,'',1)
 		if loc == 'l' or loc == 'd' or loc == 'a':
 			root.left = self.insert(root.left, data, parent)
+			return root.left
 		elif loc == 'r' or loc == 'v' or loc == 'p':
 			# processes the right-sub-tree
 			root.right = self.insert(root.right, data, parent)
+			return root.right
 		else:
 			loc = ''
 			pnode = self.bfs(parent, root_top, self.visit)
@@ -96,13 +100,17 @@ class CBTree:
 				loc = data.replace(pnode.data,'',1)
 			if loc == 'l' or loc == 'd' or loc == 'a':
 				root.left = self.insert(root.left, data, parent)
+				return root.left
 			elif loc == 'r' or loc == 'v' or loc == 'p':
 				root.right = self.insert(root.right, data, parent)
+				return root.right
 			elif root.left == None:
 				root.left = self.insert(root.left, data, parent)
+				return root.left
 			else:
 				root.right = self.insert(root.right, data, parent)
-		return root
+				return root.right
+
        
 
 #do a binary tree search, if that fails, fall back to breadth-first traversal (for non systematic names)
@@ -177,11 +185,13 @@ if __name__ == "__main__":
 	BTree.addLeaf(None, 'P', root)
 	# ask the user to insert values
 	mystr = "ABCDE"
-	BTree.insert(root,'A',root_top) 
+	root = BTree.insert(root,'A',root) 
+	print "new root: " + root.data + "\n"
 	for i in range(0, 4):
 		# insert values
 		print BTree.printTree(root_top)
-		root = BTree.insert(root, mystr[i+1], root)
+		root = BTree.insert(root_top, mystr[i+1], root)
+		print "new root: " + root.data + "\n"
 	print BTree.printTree(root_top)
 	print BTree.printRevTree(root_top)
 	data = raw_input("insert a value to find: ")
