@@ -27,19 +27,19 @@ class CBTree:
 		self.leaf = {}
 
 	def addLeaf(self, parent, data, newnode):
-		print "1:"
-		print self.leaf
 		if parent != None:
 			del self.leaf[parent]
 		self.leaf[data] = newnode
-		print "2:" 
-		print self.leaf
  
 	def addNode(self, data, parent):
 		# creates a new node and returns it
 		return CNode(data, parent)
 
-	def visit(self, target, node):
+	def printNode(self, target, node):
+		print node.data
+		return None
+
+	def findNode(self, target, node):
 		if node.data == target:
 			return node
 		else:
@@ -52,10 +52,6 @@ class CBTree:
 		while len(queue):
 			new_nodes_at = len(queue)-1
 			curr_node = queue.pop(0)    # Dequeue
-			print 'curr_node.data: ' + curr_node.data + '\n'
-			#print 'curr_node.parent.data: ' + curr_node.parent.data + '\n'
-			#print 'curr_node.right.data: ' + curr_node.right.data + '\n'
-			#print 'curr_node.left.data: ' + curr_node.left.data + '\n'
 			if visit(target, curr_node) != None:
 				return visit(target, curr_node)
 			#visited.add(curr_node)
@@ -80,10 +76,6 @@ class CBTree:
 			return new_node
 	# enters into the tree
 		#if parent.startswith(root.data):
-		print 'parent.data: ' + parent.data + '\n'
-		print 'root.data: ' + root.data + '\n' 
-		print 'data: ' + data + '\n'
-		print 'root_top.data: ' + root_top.data + '\n'
 		#loc = data.partition(root.data)[2][0]
 		loc = data.replace(root.data,'',1)
 		if loc == 'l' or loc == 'd' or loc == 'a':
@@ -95,7 +87,7 @@ class CBTree:
 			return root.right
 		else:
 			loc = ''
-			pnode = self.bfs(parent, root_top, self.visit)
+			pnode = self.bfs(parent, root_top, self.findNode)
 			if pnode != None:
 				loc = data.replace(pnode.data,'',1)
 			if loc == 'l' or loc == 'd' or loc == 'a':
@@ -117,9 +109,9 @@ class CBTree:
 	def lookup(self, root, target):
 		# looks for a value into the tree
 		if root == None:
-			return bfs(target, root, self.visit)
+			return bfs(target, root, self.findNode)
 		else:
-			print root.data
+			#print root.data
 			# if it has found it...
 			if target == root.data:
 				return root
@@ -130,7 +122,7 @@ class CBTree:
 					elif loc == 'r' or loc == 'v' or loc == 'p':
 						return self.lookup(root.right, target)
 					else:
-						return bfs(target, root, self.visit)
+						return bfs(target, root, self.findNode)
 
 
  
@@ -158,13 +150,16 @@ class CBTree:
 			return self.size(root.left) + 1 + self.size(root.right)
 
 	def printTree(self, root):
+		print "BFS Print\n"
+		self.bfs("NotANode", root, self.printNode)
+		print "\nEnd BFS Print\n"
 		# prints the tree path
-		if root == None:
-			pass
-		else:
-			self.printTree(root.left)
-			print root.data,
-			self.printTree(root.right)
+		#if root == None:
+		#	pass
+		#else:
+		#	self.printTree(root.left)
+		#	print root.data,
+		#	self.printTree(root.right)
 
 	def printRevTree(self, root):
 		# prints the tree path in reverse
@@ -186,12 +181,9 @@ if __name__ == "__main__":
 	# ask the user to insert values
 	mystr = "ABCDE"
 	root = BTree.insert(root,'A',root) 
-	print "new root: " + root.data + "\n"
 	for i in range(0, 4):
 		# insert values
-		print BTree.printTree(root_top)
 		root = BTree.insert(root_top, mystr[i+1], root)
-		print "new root: " + root.data + "\n"
 	print BTree.printTree(root_top)
 	print BTree.printRevTree(root_top)
 	data = raw_input("insert a value to find: ")
