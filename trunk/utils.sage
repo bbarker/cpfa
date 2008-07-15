@@ -74,18 +74,27 @@ class CBTree:
 		self.bfs("NotANode", root, self.printNode)
 		print "\nEnd BFS Print\n"
 
-	#change the insertion method to insert by parent name, left node first
+	def insertByParent(self, data, parent):
+		new_node = self.addNode(data, parent)
+		loc = data.replace(parent.data,'',1)
+		if len(loc):
+			loc=loc[0]
+		if loc == 'l' or loc == 'd' or loc == 'a':
+			parent.left = new_node
+		elif loc == 'r' or loc == 'v' or loc == 'p':
+			parent.right = new_node 
+		elif parent.left == None:
+			parent.left = new_node
+		else:
+			parent.right = new_node	
+		self.addLeaf(parent.data, data, new_node)
+		return new_node
+
 	def insert(self, root, data, parent):
-		# inserts a new data
 		if root == None:
-			# it there isn't any data
-			# adds it and returns
 			new_node = self.addNode(data, None)
 			self.addLeaf(parent.data, data, new_node)
 			return new_node
-	# enters into the tree
-		#if parent.startswith(root.data):
-		#loc = data.partition(root.data)[2][0]
 		loc = data.replace(root.data,'',1)
 		if len(loc):
 			loc=loc[0]
@@ -93,7 +102,6 @@ class CBTree:
 			root.left = self.insert(root.left, data, parent)
 			return root.left
 		elif loc == 'r' or loc == 'v' or loc == 'p':
-			# processes the right-sub-tree
 			root.right = self.insert(root.right, data, parent)
 			return root.right
 		else:
@@ -200,10 +208,10 @@ if __name__ == "__main__":
 	BTree.addLeaf(None, 'P', root)
 	# ask the user to insert values
 	mystr = "ABCDE"
-	root = BTree.insert(root,'A',root) 
+	root = BTree.insertByParent('A',root) 
 	for i in range(0, 4):
 		# insert values
-		root = BTree.insert(root_top, mystr[i+1], root)
+		root = BTree.insertByParent(mystr[i+1], root)
 	print BTree.printTree(root_top)
 	print BTree.printRevTree(root_top)
 	data = raw_input("insert a value to find: ")
