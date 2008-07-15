@@ -82,6 +82,8 @@ class CBTree:
 		#if parent.startswith(root.data):
 		#loc = data.partition(root.data)[2][0]
 		loc = data.replace(root.data,'',1)
+		if len(loc):
+			loc=loc[0]
 		if loc == 'l' or loc == 'd' or loc == 'a':
 			root.left = self.insert(root.left, data, parent)
 			return root.left
@@ -91,9 +93,12 @@ class CBTree:
 			return root.right
 		else:
 			loc = ''
-			pnode = self.bfs(parent, root_top, self.findNode)
+			pnode = self.bfs(parent.data, root_top, self.findNode)
 			if pnode != None:
+				print "pnode: " + pnode.data + "\n"
 				loc = data.replace(pnode.data,'',1)
+				if len(loc):
+					loc=loc[0]
 			if loc == 'l' or loc == 'd' or loc == 'a':
 				root.left = self.insert(root.left, data, parent)
 				return root.left
