@@ -69,6 +69,11 @@ class CBTree:
 			#queue.extend(c for c in curr_node.children if c not in visited and c not in queue)
 		return None
 
+	def printTree(self, root):
+		print "BFS Print\n"
+		self.bfs("NotANode", root, self.printNode)
+		print "\nEnd BFS Print\n"
+
 	#change the insertion method to insert by parent name, left node first
 	def insert(self, root, data, parent):
 		# inserts a new data
@@ -96,6 +101,7 @@ class CBTree:
 			pnode = self.bfs(parent.data, root_top, self.findNode)
 			if pnode != None:
 				print "pnode: " + pnode.data + "\n"
+				self.printTree(root_top)
 				loc = data.replace(pnode.data,'',1)
 				if len(loc):
 					loc=loc[0]
@@ -106,11 +112,16 @@ class CBTree:
 				root.right = self.insert(root.right, data, parent)
 				return root.right
 			elif root.left == None:
+				print "ins left\n"
 				root.left = self.insert(root.left, data, parent)
 				return root.left
-			else:
+			elif root.right == None:
+				print "ins right\n"
 				root.right = self.insert(root.right, data, parent)
 				return root.right
+			else:
+				print "ERR\n"
+				return root
 
        
 
@@ -158,10 +169,10 @@ class CBTree:
 		else:
 			return self.size(root.left) + 1 + self.size(root.right)
 
-	def printTree(self, root):
-		print "BFS Print\n"
-		self.bfs("NotANode", root, self.printNode)
-		print "\nEnd BFS Print\n"
+	#def printTree(self, root):
+		#print "BFS Print\n"
+		#self.bfs("NotANode", root, self.printNode)
+		#print "\nEnd BFS Print\n"
 		# prints the tree path
 		#if root == None:
 		#	pass
