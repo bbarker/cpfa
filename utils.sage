@@ -10,6 +10,18 @@ import pprint
 
 # A binary ordered tree example
 
+#Just use a hash instead.
+class TimePoint:
+	time = x = y = z = radius = gfp = 0
+	def __init__(t, x, y, z, r, gfp):
+		self.time = t
+		self.x = x
+		self.y = y
+		self.z = z
+		self.radius = r
+
+class CellDiv:
+
 class CNode:
 	parent, left, right, data = None, None, None, 0 
     
@@ -47,15 +59,12 @@ class CBTree:
 
 	def bfs(self, target, top_node, visit):
 		"""Breadth-first search on a graph, starting at top_node."""
-		#visited = set()
 		queue = [top_node]
 		while len(queue):
 			new_nodes_at = len(queue)-1
 			curr_node = queue.pop(0)    # Dequeue
 			if visit(target, curr_node) != None:
 				return visit(target, curr_node)
-			#visited.add(curr_node)
-			# Enqueue non-visited and non-enqueued children
 			qlen=len(queue)
 			if (curr_node.left != None):
 				queue.extend([curr_node.left])
@@ -66,13 +75,10 @@ class CBTree:
 					queue.extend([queue[i].left])
 				if (queue[i].right != None):
 					queue.extend([queue[i].right])
-			#queue.extend(c for c in curr_node.children if c not in visited and c not in queue)
 		return None
 
 	def printTree(self, root):
-		print "BFS Print\n"
 		self.bfs("NotANode", root, self.printNode)
-		print "\nEnd BFS Print\n"
 
 	def insertByParent(self, data, parent):
 		new_node = self.addNode(data, parent)
@@ -108,7 +114,6 @@ class CBTree:
 			loc = ''
 			pnode = self.bfs(parent.data, root_top, self.findNode)
 			if pnode != None:
-				print "pnode: " + pnode.data + "\n"
 				self.printTree(root_top)
 				loc = data.replace(pnode.data,'',1)
 				if len(loc):
@@ -120,11 +125,9 @@ class CBTree:
 				root.right = self.insert(root.right, data, parent)
 				return root.right
 			elif root.left == None:
-				print "ins left\n"
 				root.left = self.insert(root.left, data, parent)
 				return root.left
 			elif root.right == None:
-				print "ins right\n"
 				root.right = self.insert(root.right, data, parent)
 				return root.right
 			else:
@@ -176,18 +179,6 @@ class CBTree:
 			return 0
 		else:
 			return self.size(root.left) + 1 + self.size(root.right)
-
-	#def printTree(self, root):
-		#print "BFS Print\n"
-		#self.bfs("NotANode", root, self.printNode)
-		#print "\nEnd BFS Print\n"
-		# prints the tree path
-		#if root == None:
-		#	pass
-		#else:
-		#	self.printTree(root.left)
-		#	print root.data,
-		#	self.printTree(root.right)
 
 	def printRevTree(self, root):
 		# prints the tree path in reverse
