@@ -19,14 +19,12 @@ def CreateDivTree(nuclei_zip):
 	DivisionTree = CBTree()
 	#Add initial cell names to the tree.
 	root = DivisionTree.root = DivisionTree.addNode(None,None,'P')
+	DivisionTree.addLeaf(None,'P',root)
 	cur_node = DivisionTree.insertByParent(None,root,'P0')
 	cur_node = DivisionTree.insertByParent(None,cur_node,'P1')
-	DivisionTree.addLeaf(None,'P1',cur_node)
 	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'AB')
 	cur_node = DivisionTree.insertByParent(None,cur_node,'ABa')
-	#DivisionTree.addLeaf(None,'ABa',cur_node)
 	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'ABp')
-	#DivisionTree.addLeaf(None,'ABp',cur_node)
 	NucFile = ZipFile(nuclei_zip,'r')
 		
 	return DivisionTree
