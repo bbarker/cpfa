@@ -37,7 +37,7 @@ class CBTree:
 		return CNode(data, parent, key)
 
 	def printNode(self, target, node):
-		print node.data
+		print node.key
 		return None
 
 	def findNode(self, target, node):
