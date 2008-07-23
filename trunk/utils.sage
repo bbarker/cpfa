@@ -10,7 +10,7 @@ import pprint
 
 
 class CNode:
-	parent, left, right, data = None, None, None, 0 
+	parent, left, right, key, data = None, None, None, None, 0 
     
 	def __init__(self, data, parent, key):
         # initializes the data members
@@ -27,7 +27,7 @@ class CBTree:
 		self.leaf = {}
 
 	def addLeaf(self, parent, key, newnode):
-		if parent != None:
+		if parent != None and self.leaf.get(parent) != None:
 			del self.leaf[parent]
 		self.leaf[key] = newnode
 		
@@ -74,6 +74,14 @@ class CBTree:
 		loc = key.replace(parent.key,'',1)
 		if len(loc):
 			loc=loc[0]
+		if parent.left != None:
+			if parent.left.key == new_node.key:
+				parent.left.data = new_node.data
+				return new_node		
+		if parent.right != None:
+			if parent.right.key == new_node.key:
+				parent.right.data = new_node.data
+				return new_node
 		if loc == 'l' or loc == 'd' or loc == 'a':
 			parent.left = new_node
 		elif loc == 'r' or loc == 'v' or loc == 'p':
@@ -81,7 +89,7 @@ class CBTree:
 		elif parent.left == None:
 			parent.left = new_node
 		else:
-			parent.right = new_node	
+			parent.right = new_node
 		self.addLeaf(parent.data, key, new_node)
 		return new_node
 
