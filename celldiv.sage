@@ -1,7 +1,7 @@
 #!/Applications/sage/sage 
 # vim:set syntax=python:
 load utils.sage
-
+from zipfile import ZipFile
 
 #time points are stored in <cell>_data as an array 
 # of hashes, with the index specifying the time point
@@ -14,3 +14,11 @@ class CellDiv:
 	def __init__(self, mother_data):
 		self.mother_data = mother_data
 
+
+def CreateDivTree(nuclei_zip):
+	DivisionTree = CBTree()
+	NucFile = ZipFile(nuclei_zip,'r')
+			
+	return DivisionTree
+
+	
