@@ -1,36 +1,24 @@
-#!/Applications/sage/sage 
+#!/Applications/sag/sage 
 # vim:set syntax=python:
 
 import sys
 import subprocess
 from sage.all import *
-#from rpy import * 
 import pprint
 
 
-# A binary ordered tree example
 
-#Just use a hash instead.
-class TimePoint:
-	time = x = y = z = radius = gfp = 0
-	def __init__(t, x, y, z, r, gfp):
-		self.time = t
-		self.x = x
-		self.y = y
-		self.z = z
-		self.radius = r
-
-class CellDiv:
 
 class CNode:
 	parent, left, right, data = None, None, None, 0 
     
-	def __init__(self, data, parent):
+	def __init__(self, data, parent, key):
         # initializes the data members
 		self.parent = parent 
 		self.left = None
 		self.right = None
 		self.data = data
+		self.key = key
 
 class CBTree:
 	def __init__(self):
@@ -38,21 +26,22 @@ class CBTree:
 		self.root = None
 		self.leaf = {}
 
-	def addLeaf(self, parent, data, newnode):
+	def addLeaf(self, parent, key, newnode):
 		if parent != None:
 			del self.leaf[parent]
-		self.leaf[data] = newnode
+		self.leaf[key] = newnode
+		
  
-	def addNode(self, data, parent):
+	def addNode(self, data, parent, key):
 		# creates a new node and returns it
-		return CNode(data, parent)
+		return CNode(data, parent, key)
 
 	def printNode(self, target, node):
 		print node.data
 		return None
 
 	def findNode(self, target, node):
-		if node.data == target:
+		if node.key == target:
 			return node
 		else:
 			return None
@@ -80,9 +69,9 @@ class CBTree:
 	def printTree(self, root):
 		self.bfs("NotANode", root, self.printNode)
 
-	def insertByParent(self, data, parent):
-		new_node = self.addNode(data, parent)
-		loc = data.replace(parent.data,'',1)
+	def insertByParent(self, data, parent, key):
+		new_node = self.addNode(data, parent, key)
+		loc = key.replace(parent.key,'',1)
 		if len(loc):
 			loc=loc[0]
 		if loc == 'l' or loc == 'd' or loc == 'a':
@@ -93,48 +82,9 @@ class CBTree:
 			parent.left = new_node
 		else:
 			parent.right = new_node	
-		self.addLeaf(parent.data, data, new_node)
+		self.addLeaf(parent.data, key, new_node)
 		return new_node
 
-	def insert(self, root, data, parent):
-		if root == None:
-			new_node = self.addNode(data, None)
-			self.addLeaf(parent.data, data, new_node)
-			return new_node
-		loc = data.replace(root.data,'',1)
-		if len(loc):
-			loc=loc[0]
-		if loc == 'l' or loc == 'd' or loc == 'a':
-			root.left = self.insert(root.left, data, parent)
-			return root.left
-		elif loc == 'r' or loc == 'v' or loc == 'p':
-			root.right = self.insert(root.right, data, parent)
-			return root.right
-		else:
-			loc = ''
-			pnode = self.bfs(parent.data, root_top, self.findNode)
-			if pnode != None:
-				self.printTree(root_top)
-				loc = data.replace(pnode.data,'',1)
-				if len(loc):
-					loc=loc[0]
-			if loc == 'l' or loc == 'd' or loc == 'a':
-				root.left = self.insert(root.left, data, parent)
-				return root.left
-			elif loc == 'r' or loc == 'v' or loc == 'p':
-				root.right = self.insert(root.right, data, parent)
-				return root.right
-			elif root.left == None:
-				root.left = self.insert(root.left, data, parent)
-				return root.left
-			elif root.right == None:
-				root.right = self.insert(root.right, data, parent)
-				return root.right
-			else:
-				print "ERR\n"
-				return root
-
-       
 
 #do a binary tree search, if that fails, fall back to breadth-first traversal (for non systematic names)
 	def lookup(self, root, target):
@@ -142,12 +92,11 @@ class CBTree:
 		if root == None:
 			return bfs(target, root, self.findNode)
 		else:
-			#print root.data
 			# if it has found it...
-			if target == root.data:
+			if target == root.key:
 				return root
 			else:
-				if target.startswith(root.data):
+				if target.startswith(root.key):
 					if loc == 'l' or loc == 'd' or loc == 'a':
 						return self.lookup(root.left, target)
 					elif loc == 'r' or loc == 'v' or loc == 'p':
@@ -157,61 +106,61 @@ class CBTree:
 
 
  
-	def minValue(self, root):
-		# goes down into the left
-		# arm and returns the last value
-		while(root.left != None):
-			root = root.left
-		return root.data
+#	def minValue(self, root):
+#		# goes down into the left
+#		# arm and returns the last value
+#		while(root.left != None):
+#			root = root.left
+#		return root.data
 
-	def maxDepth(self, root):
-		if root == None:
-			return 0
-		else:
-			# computes the two depths
-			ldepth = self.maxDepth(root.left)
-			rdepth = self.maxDepth(root.right)
-			# returns the appropriate depth
-			return max(ldepth, rdepth) + 1
+#	def maxDepth(self, root):
+#		if root == None:
+#			return 0
+#		else:
+#			# computes the two depths
+#			ldepth = self.maxDepth(root.left)
+#			rdepth = self.maxDepth(root.right)
+#			# returns the appropriate depth
+#			return max(ldepth, rdepth) + 1
             
-	def size(self, root):
-		if root == None:
-			return 0
-		else:
-			return self.size(root.left) + 1 + self.size(root.right)
+#	def size(self, root):
+#		if root == None:
+#			return 0
+#		else:
+#			return self.size(root.left) + 1 + self.size(root.right)
 
-	def printRevTree(self, root):
-		# prints the tree path in reverse
-		# order
-		if root == None:
-			pass
-		else:
-			self.printRevTree(root.right)
-			print root.data,
-			self.printRevTree(root.left)
+#	def printRevTree(self, root):
+#		# prints the tree path in reverse
+#		# order
+#		if root == None:
+#			pass
+#		else:
+#			self.printRevTree(root.right)
+#			print root.data,
+#			self.printRevTree(root.left)
 
 
-if __name__ == "__main__":
-	# create the binary tree
-	BTree = CBTree()
-	# add the root node
-	root_top = root = BTree.root = BTree.addNode('P',None)
-	BTree.addLeaf(None, 'P', root)
-	# ask the user to insert values
-	mystr = "ABCDE"
-	root = BTree.insertByParent('A',root) 
-	for i in range(0, 4):
-		# insert values
-		root = BTree.insertByParent(mystr[i+1], root)
-	print BTree.printTree(root_top)
-	print BTree.printRevTree(root_top)
-	data = raw_input("insert a value to find: ")
-	if BTree.lookup(root_top, data) != None:
-		print "found" 
-	else:   
-		print "not found"
-        
-	print BTree.minValue(root_top)
-	print BTree.maxDepth(root_top)
-	print BTree.size(root_top)
+#if __name__ == "__main__":
+#	# create the binary tree
+#	BTree = CBTree()
+#	# add the root node
+#	root_top = root = BTree.root = BTree.addNode('P',None,'P')
+#	BTree.addLeaf(None, 'P', root)
+#	# ask the user to insert values
+#	mystr = "ABCDE"
+#	root = BTree.insertByParent('A',root, 'A') 
+#	for i in range(0, 4):
+#		# insert values
+#		root = BTree.insertByParent(mystr[i+1], root, mystr[i+1])
+#	print BTree.printTree(root_top)
+#	print BTree.printRevTree(root_top)
+#	data = raw_input("insert a value to find: ")
+#	if BTree.lookup(root_top, data) != None:
+#		print "found" 
+#	else:   
+#		print "not found"
+#        
+#	print BTree.minValue(root_top)
+#	print BTree.maxDepth(root_top)
+#	print BTree.size(root_top)
 
