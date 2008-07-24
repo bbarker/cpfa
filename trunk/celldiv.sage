@@ -26,7 +26,12 @@ def CreateDivTree(nuclei_zip):
 	cur_node = DivisionTree.insertByParent(None,cur_node,'ABa')
 	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'ABp')
 	NucFile = ZipFile(nuclei_zip,'r')
-		
+	NucList = NucFile.namelist()
+	prior_file = []
+	cur_file = []
+	for i in range(0,len(NucList))
+		cur_file = 	
+		prior_file = cur_file	 		
 	return DivisionTree
 
 	
