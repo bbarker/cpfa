@@ -5,27 +5,42 @@ import sys
 import subprocess
 from sage.all import *
 import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 #returns a stratified list (or hash - if items in LoL[i][col] aren't all int)
 #of lists indexed by the items in LoL[i][col] (i in [0,len(LoL)]
+#convert will attempt to justify indices to 0 and use an array instead of a dict
 def stratify(col, LoL, convert=False):
 	newlist=[]
+	col_items=[]
+	col_min=None
 	if convert:
 		for i in range(0,len(LoL)):
 			LoL[i][col]=Integer(LoL[i][col])
-	col_items = [l[col] for l in LoL]
+			col_items.append(LoL[i][col])
+		col_min=min(col_items)
+		if col_min != 0:
+			for i in range(0,len(LoL)):
+				LoL[i][col]=LoL[i][col]-col_min
+			col_items = [l[col] for l in LoL]
+			col_min = 0
+	else:
+		col_items = [l[col] for l in LoL]
 	if len(set(col_items)) != len(col_items):
 		raise KeyError()
 	else:
 		tl = [type(c) for c in col_items]
-		if len(set(tl)) == 1 and type(col_items[0]) == type(1):
+		if len(set(tl)) == 1 and type(col_items[0]) == type(1) and max(col_items)-col_min+1 == len(LoL):
 			newlist = [None for l in col_items]
 			for l in LoL:
 				newlist[l.pop(col)]=l 
 		else:
+			print str(len(set(tl))) + "\n" + repr(type(col_items[0])) + "\n" + str((max(col_items)-col_min+1)) + "\n" + str(len(LoL)) + "\n"
 			newlist = {} 
 			for l in LoL:
 				newlist[l.pop(col)]=l 
+			print newlist
+			raise(Exception)
 	return newlist
 
 class CNode:
