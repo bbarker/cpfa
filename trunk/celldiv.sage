@@ -3,6 +3,7 @@
 load utils.sage
 from zipfile import ZipFile
 
+
 #time points are stored in <cell>_data as an array 
 # of hashes, with the index specifying the time point
 # and the key specifying the feature name 
@@ -29,8 +30,11 @@ def CreateDivTree(nuclei_zip):
 	NucList = NucFile.namelist()
 	prior_file = []
 	cur_file = []
-	for i in range(0,len(NucList))
-		cur_file = 	
+	for i in range(0,len(NucList)):  	#time for a nasty reformat line - just to make things perlesque
+		print "i: " + str(i) + "\n"
+		print NucList[i] + "\n"
+		cur_file = stratify(0,[fline.strip().split(',') for fline in NucFile.read(NucList[i]).rstrip().split('\n')],True)
+		print cur_file
 		prior_file = cur_file	 		
 	return DivisionTree
 
