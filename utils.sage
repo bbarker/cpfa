@@ -6,8 +6,27 @@ import subprocess
 from sage.all import *
 import pprint
 
-
-
+#returns a stratified list (or hash - if items in LoL[i][col] aren't all int)
+#of lists indexed by the items in LoL[i][col] (i in [0,len(LoL)]
+def stratify(col, LoL, convert=False):
+	newlist=[]
+	if convert:
+		for i in range(0,len(LoL)):
+			LoL[i][col]=Integer(LoL[i][col])
+	col_items = [l[col] for l in LoL]
+	if len(set(col_items)) != len(col_items):
+		raise KeyError()
+	else:
+		tl = [type(c) for c in col_items]
+		if len(set(tl)) == 1 and type(col_items[0]) == type(1):
+			newlist = [None for l in col_items]
+			for l in LoL:
+				newlist[l.pop(col)]=l 
+		else:
+			newlist = {} 
+			for l in LoL:
+				newlist[l.pop(col)]=l 
+	return newlist
 
 class CNode:
 	parent, left, right, key, data = None, None, None, None, 0 
@@ -20,6 +39,11 @@ class CNode:
 		self.data = data
 		self.key = key
 
+
+#Assumes Sulston-style naming conventions for anterior,posterior,
+#left,right,dorsal and ventral, although as long as the 
+#parent-child relationships are specified this class will work
+#regardless (and in fact, they must be specified).
 class CBTree:
 	def __init__(self):
 		# initializes the root member
