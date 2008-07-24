@@ -5,7 +5,7 @@ import sys
 import subprocess
 from sage.all import *
 import pprint
-pp = pprint.PrettyPrinter(indent=4)
+#pp = pprint.PrettyPrinter(indent=4)
 
 #returns a stratified list (or hash - if items in LoL[i][col] aren't all int)
 #of lists indexed by the items in LoL[i][col] (i in [0,len(LoL)]
@@ -35,12 +35,9 @@ def stratify(col, LoL, convert=False):
 			for l in LoL:
 				newlist[l.pop(col)]=l 
 		else:
-			print str(len(set(tl))) + "\n" + repr(type(col_items[0])) + "\n" + str((max(col_items)-col_min+1)) + "\n" + str(len(LoL)) + "\n"
 			newlist = {} 
 			for l in LoL:
 				newlist[l.pop(col)]=l 
-			print newlist
-			raise(Exception)
 	return newlist
 
 class CNode:
