@@ -72,14 +72,11 @@ class CBTree:
 			if self.leaf[parent].left != None:
 				if self.leaf[parent].left.key != None:
 					left_empty = False
-					print "left key: " +  self.leaf[parent].left.key + "\n"
 			if self.leaf[parent].right != None:
 				if self.leaf[parent].right.key != None:
 					right_empty = False
-					print "right key: " +  self.leaf[parent].right.key + "\n"
 			if not right_empty and not left_empty:
 				del self.leaf[parent]
-		print "\n"
 		self.leaf[key] = newnode
 		
  
