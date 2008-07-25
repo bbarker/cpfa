@@ -97,20 +97,35 @@ class CBTree:
 		print node.key
 		return None
 
-	def printCellDiv(self, target, node):
+	def printCellDiv(self, output, node):
+		if node.data == None:
+			return None
 		#get header in string (mother, d1, d2 names)
 		output.write('###\t' + node.data.mother_name + '\t' + node.data.daughter1_name \
-		+ '\t' + node.data.daughter2_name + '\t' + node.data.div_time + '\n')
+		+ '\t' + node.data.daughter2_name + '\t' + str(node.data.div_time) + '\n')
 		#get mother data in string	
-		for tps in node.data.time_points.keys().sort():
-			output.write(reduce(lambda x, y: str(x) + str(y) + '\t', node.data.time_points[tps]) + '\n')
+		astring=''
+		output.write("Mother:\n")
+		tps = node.data.time_points.keys()
+		tps.sort()	
+		for tp in tps:
+			output.write(astring.join(map(lambda x: str(x) + '\t', [tp] + node.data.time_points[tp].values()) + ['\n']))
 		#get d1 data
-		for tps in node.left.data.time_points.keys().sort():
-			output.write(reduce(lambda x, y: str(x) + str(y) + '\t', node.data.left.time_points[tps]) + '\n')
+		output.write("Daughter 1:\n")
+		if node.left != None:
+			if node.left.data != None:
+				tps = node.left.data.time_points.keys()
+				tps.sort()
+				for tp in tps:
+					output.write(astring.join(map(lambda x: str(x) + '\t', [tp] + node.left.data.time_points[tp].values()) + ['\n']))
 		#get d2 data
-		for tps in node.data.right.time_points.keys().sort():
-			output.write(reduce(lambda x, y: str(x) + str(y) + '\t', node.data.right.time_points[tps]) + '\n')
-
+		output.write("Daughter 2:\n")
+		if node.right != None:
+			if node.right.data != None:
+				tps = node.right.data.time_points.keys()
+				tps.sort()
+				for tp in tps:
+					output.write(astring.join(map(lambda x: str(x) + '\t', [tp] + node.right.data.time_points[tp].values()) + ['\n']))
 
 	def findNode(self, target, node):
 		if node.key == target:
@@ -147,9 +162,12 @@ class CBTree:
 		types = [getTypeStr(1)] + map(getTypeStr,self.leaf.values()[0].data.time_points.values()[0].values())
 		names = ['time'] + self.leaf.values()[0].data.time_points.values()[0].keys()
 		for i in range (0, len(types)):
-			output.write(types[i] + ":" + names[i] + "\t")
-		print "\n"
-		self.bfs("NotANode", self.root, self.printCellDiv)
+			output.write(names[i] + "\t")
+		output.write("\n")	
+		for i in range (0, len(types)):
+			output.write(types[i] + "\t")
+		output.write("\n")	
+		self.bfs(output, self.root, self.printCellDiv)
 			
 
 	def insertByParent(self, data, parent, key):
