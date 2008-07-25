@@ -5,7 +5,11 @@ import sys
 import subprocess
 from sage.all import *
 import pprint
+#import re
 #pp = pprint.PrettyPrinter(indent=4)
+
+##global rexexes##
+#typestr = re.compile('\'\S\'')
 
 #returns a stratified list (or hash - if items in LoL[i][col] aren't all int)
 #of lists indexed by the items in LoL[i][col] (i in [0,len(LoL)]
@@ -40,6 +44,9 @@ def stratify(col, LoL, convert=False):
 				newlist[l.pop(col)]=l 
 	return newlist
 
+def getTypeStr(val)
+	return repr(type(val)).replace('<type \'','').replace('\'>','')
+	
 class CNode:
 	parent, left, right, key, data = None, None, None, None, 0 
     
@@ -88,6 +95,19 @@ class CBTree:
 		print node.key
 		return None
 
+	def printCellDiv(self, target, node):
+		#get header in string (mother, d1, d2 names)
+
+		#get mother data in string	
+
+		#get d1 data
+
+		#get d2 data
+
+		#return string
+
+
+
 	def findNode(self, target, node):
 		if node.key == target:
 			return node
@@ -116,6 +136,11 @@ class CBTree:
 
 	def printTree(self, root):
 		self.bfs("NotANode", root, self.printNode)
+
+	def printLineage(self, root):
+		#print column headings (types and names)
+		self.bfs("NotANode", root, self.printCelDiv):
+		
 
 	def insertByParent(self, data, parent, key):
 		new_node = self.addNode(data, parent, key)
