@@ -80,7 +80,7 @@ def CreateDivTree(nuclei_zip):
 				#need to find node if it exists, could use a prior check or tree search  - then append any new data to node
 				#print DivisionTree.printTree(root)
 				if not new_cell or l[1]-1 < 0:		#This is not a new cell, append data to existing node
-					DivisionTree.leaf[l[8]].data.time_points.update(tph)
+					DivisionTree.leaf[l[8]].data.time_points.update(cur_cd.time_points)
 				else:					#We have a new cell, insert a node
 					cur_node = DivisionTree.insertByParent(cur_cd,DivisionTree.leaf[prior_file[l[1]-1][8]],l[8])
 		prior_file = cur_file
