@@ -28,7 +28,8 @@ def ValConvert(string_list):
 
 
 def CreateDivTree(nuclei_zip):
-	DivisionTree = CBTree()
+	#create a module for utils??? - to allow for pickling
+	DivisionTree = BTree()
 	#tp = re.compile('\d+')
 	#Add initial cell names to the tree.
 	root = DivisionTree.root = DivisionTree.addNode(None,None,'P')
@@ -51,7 +52,6 @@ def CreateDivTree(nuclei_zip):
 		else:
 			next_file = []
 		for l in cur_file:
-			print l
 			#all indices of l drop by 2 in total due to stratify
 			if l[0] == 1 and not l[8].lower().startswith('polar'):
 				new_cell = True
@@ -79,14 +79,20 @@ def CreateDivTree(nuclei_zip):
 				cur_cd.time_points_m[i+1]=tph
 				#need to find node if it exists, could use a prior check or tree search  - then append any new data to node
 				#print DivisionTree.printTree(root)
-				print "leaf keys: "
-				print DivisionTree.leaf.keys()
 				if not new_cell or l[1]-1 < 0:		#This is not a new cell, append data to existing node
-					print "not new cell or l[1]-1<0"
 					DivisionTree.leaf[l[8]].data.time_points_m.update(tph)
 				else:					#We have a new cell, insert a node
 					cur_node = DivisionTree.insertByParent(cur_cd,DivisionTree.leaf[prior_file[l[1]-1][8]],l[8])
-		prior_file = cur_file	 		
+		prior_file = cur_file
+	dt_tmp=open('dt_tmp.txt','w')
+	pickle.dump(DivisionTree,dt_tmp,2)
+	dt_tmp.close()
 	return DivisionTree
+
+#def printTDF(dtree):
+	#order shouldn't matter, use existing bfs function to traverse.
+	#add in a new print function for bfs
+
+
 
 	
