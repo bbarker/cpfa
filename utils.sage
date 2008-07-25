@@ -22,8 +22,8 @@ def stratify(col, LoL, convert=False):
 		for i in range(0,len(LoL)):
 			LoL[i][col]=Integer(LoL[i][col])
 			col_items.append(LoL[i][col])
-		col_min=min(col_items)
-		if col_min != 0:
+	col_min=min(col_items)
+	if col_min != 0:
 			for i in range(0,len(LoL)):
 				LoL[i][col]=LoL[i][col]-col_min
 			col_items = [l[col] for l in LoL]
@@ -44,7 +44,9 @@ def stratify(col, LoL, convert=False):
 				newlist[l.pop(col)]=l 
 	return newlist
 
-def getTypeStr(val)
+
+
+def getTypeStr(val):
 	return repr(type(val)).replace('<type \'','').replace('\'>','')
 	
 class CNode:
@@ -97,15 +99,17 @@ class CBTree:
 
 	def printCellDiv(self, target, node):
 		#get header in string (mother, d1, d2 names)
-
+		output.write('###\t' + node.data.mother_name + '\t' + node.data.daughter1_name \
+		+ '\t' + node.data.daughter2_name + '\t' + node.data.div_time + '\n')
 		#get mother data in string	
-
+		for tps in node.data.time_points.keys().sort():
+			output.write(reduce(lambda x, y: str(x) + str(y) + '\t', node.data.time_points[tps]) + '\n')
 		#get d1 data
-
+		for tps in node.left.data.time_points.keys().sort():
+			output.write(reduce(lambda x, y: str(x) + str(y) + '\t', node.data.left.time_points[tps]) + '\n')
 		#get d2 data
-
-		#return string
-
+		for tps in node.data.right.time_points.keys().sort():
+			output.write(reduce(lambda x, y: str(x) + str(y) + '\t', node.data.right.time_points[tps]) + '\n')
 
 
 	def findNode(self, target, node):
@@ -137,10 +141,16 @@ class CBTree:
 	def printTree(self, root):
 		self.bfs("NotANode", root, self.printNode)
 
-	def printLineage(self, root):
+	def printLineage(self, output_file):
+		output=open(output_file,'w')
 		#print column headings (types and names)
-		self.bfs("NotANode", root, self.printCelDiv):
-		
+		types = [getTypeStr(1)] + map(getTypeStr,self.leaf.values()[0].data.time_points.values()[0].values())
+		names = ['time'] + self.leaf.values()[0].data.time_points.values()[0].keys()
+		for i in range (0, len(types)):
+			output.write(types[i] + ":" + names[i] + "\t")
+		print "\n"
+		self.bfs("NotANode", self.root, self.printCellDiv)
+			
 
 	def insertByParent(self, data, parent, key):
 		new_node = self.addNode(data, parent, key)
