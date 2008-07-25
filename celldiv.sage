@@ -29,7 +29,7 @@ def ValConvert(string_list):
 
 def CreateDivTree(nuclei_zip):
 	#create a module for utils??? - to allow for pickling
-	DivisionTree = BTree()
+	DivisionTree = CBTree()
 	#tp = re.compile('\d+')
 	#Add initial cell names to the tree.
 	root = DivisionTree.root = DivisionTree.addNode(None,None,'P')
@@ -84,9 +84,9 @@ def CreateDivTree(nuclei_zip):
 				else:					#We have a new cell, insert a node
 					cur_node = DivisionTree.insertByParent(cur_cd,DivisionTree.leaf[prior_file[l[1]-1][8]],l[8])
 		prior_file = cur_file
-	dt_tmp=open('dt_tmp.txt','w')
-	pickle.dump(DivisionTree,dt_tmp,2)
-	dt_tmp.close()
+	#dt_tmp=open('dt_tmp.txt','w')
+	#pickle.dump(DivisionTree,dt_tmp,2)
+	#dt_tmp.close()
 	return DivisionTree
 
 #def printTDF(dtree):
