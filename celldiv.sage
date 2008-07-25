@@ -32,7 +32,6 @@ def CreateDivTree(nuclei_zip):
 	#tp = re.compile('\d+')
 	#Add initial cell names to the tree.
 	root = DivisionTree.root = DivisionTree.addNode(None,None,'P')
-	DivisionTree.addLeaf(None,'P',root)
 	cur_node = DivisionTree.insertByParent(None,root,'P0')
 	cur_node = DivisionTree.insertByParent(None,cur_node,'P1')
 	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'AB')
@@ -79,13 +78,14 @@ def CreateDivTree(nuclei_zip):
 				tph['total_gfp']=l[9]
 				cur_cd.time_points_m[i+1]=tph
 				#need to find node if it exists, could use a prior check or tree search  - then append any new data to node
-				print DivisionTree.printTree(root)
-				print "\nleaf keys: "
-				print DivisionTree.leaf.keys
+				#print DivisionTree.printTree(root)
+				print "leaf keys: "
+				print DivisionTree.leaf.keys()
 				if not new_cell or l[1]-1 < 0:		#This is not a new cell, append data to existing node
+					print "not new cell or l[1]-1<0"
 					DivisionTree.leaf[l[8]].data.time_points_m.update(tph)
 				else:					#We have a new cell, insert a node
-					cur_node = DivisionTree.insertByParent(cur_cd,cur_node,DivisionTree.leaf[prior_file[l[1]-1][8]].parent.key)
+					cur_node = DivisionTree.insertByParent(cur_cd,DivisionTree.leaf[prior_file[l[1]-1][8]],l[8])
 		prior_file = cur_file	 		
 	return DivisionTree
 
