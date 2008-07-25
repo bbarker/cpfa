@@ -62,9 +62,24 @@ class CBTree:
 		self.root = None
 		self.leaf = {}
 
+#for the sake of interoperability with other software,
+#this will actually only remove a leaf node if it has 
+#2 children, which works fine since we eventually have 
+#a full binary tree.  Consider changing the name.
 	def addLeaf(self, parent, key, newnode):
 		if parent != None and self.leaf.get(parent) != None:
-			del self.leaf[parent]
+			right_empty = left_empty = True
+			if self.leaf[parent].left != None:
+				if self.leaf[parent].left.key != None:
+					left_empty = False
+					print "left key: " +  self.leaf[parent].left.key + "\n"
+			if self.leaf[parent].right != None:
+				if self.leaf[parent].right.key != None:
+					right_empty = False
+					print "right key: " +  self.leaf[parent].right.key + "\n"
+			if not right_empty and not left_empty:
+				del self.leaf[parent]
+		print "\n"
 		self.leaf[key] = newnode
 		
  
@@ -126,12 +141,12 @@ class CBTree:
 			parent.left = new_node
 		else:
 			parent.right = new_node
-		self.addLeaf(parent.data, key, new_node)
+		self.addLeaf(parent.key, key, new_node)
 		return new_node
 
 
 #do a binary tree search, if that fails, fall back to breadth-first traversal (for non systematic names)
-	def lookup(self, root, target):
+	def lookup(self, true_root, root, target):
 		# looks for a value into the tree
 		if root == None:
 			return bfs(target, root, self.findNode)
@@ -142,11 +157,11 @@ class CBTree:
 			else:
 				if target.startswith(root.key):
 					if loc == 'l' or loc == 'd' or loc == 'a':
-						return self.lookup(root.left, target)
+						return self.lookup(true_root, root.left, target)
 					elif loc == 'r' or loc == 'v' or loc == 'p':
-						return self.lookup(root.right, target)
+						return self.lookup(true_root, root.right, target)
 				else:
-					return self.bfs(target, root_top, self.findNode)
+					return self.bfs(target, true_root, self.findNode)
 
 
  
