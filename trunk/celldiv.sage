@@ -11,7 +11,7 @@ Int = Integer #for shorthand purposes...
 # and the key specifying the feature name 
 class CellDiv:
 	mother_name, daughter1_name, daughter2_name, \
-	div_time, time_points_m, \
+	div_time, time_points, \
 	= '', '', '', -1,  {}
 	def __init__(self, mother_name):
 		self.mother_name = mother_name
@@ -19,7 +19,7 @@ class CellDiv:
 
 def ValConvert(string_list):
 	val_list=[]
-	val_list += map(int,string_list[0:7])
+	val_list += map(Int,string_list[0:7])
 	val_list.append(RealNumber(string_list[7]))
 	val_list.append(Int(string_list[8]))
 	val_list.append(string_list[9].rstrip().lstrip())
@@ -76,11 +76,11 @@ def CreateDivTree(nuclei_zip):
 				tph['z']=l[6]
 				tph['diameter']=l[7]
 				tph['total_gfp']=l[9]
-				cur_cd.time_points_m[i+1]=tph
+				cur_cd.time_points[i+1]=tph
 				#need to find node if it exists, could use a prior check or tree search  - then append any new data to node
 				#print DivisionTree.printTree(root)
 				if not new_cell or l[1]-1 < 0:		#This is not a new cell, append data to existing node
-					DivisionTree.leaf[l[8]].data.time_points_m.update(tph)
+					DivisionTree.leaf[l[8]].data.time_points.update(tph)
 				else:					#We have a new cell, insert a node
 					cur_node = DivisionTree.insertByParent(cur_cd,DivisionTree.leaf[prior_file[l[1]-1][8]],l[8])
 		prior_file = cur_file
@@ -89,9 +89,6 @@ def CreateDivTree(nuclei_zip):
 	#dt_tmp.close()
 	return DivisionTree
 
-#def printTDF(dtree):
-	#order shouldn't matter, use existing bfs function to traverse.
-	#add in a new print function for bfs
 
 
 
