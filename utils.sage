@@ -105,13 +105,13 @@ class CBTree:
 		+ '\t' + node.data.daughter2_name + '\t' + str(node.data.div_time) + '\n')
 		#get mother data in string	
 		astring=''
-		output.write("Mother:\n")
+		output.write("Mother: " + node.data.mother_name + "\n")
 		tps = node.data.time_points.keys()
 		tps.sort()	
 		for tp in tps:
 			output.write(astring.join(map(lambda x: str(x) + '\t', [tp] + node.data.time_points[tp].values()) + ['\n']))
 		#get d1 data
-		output.write("Daughter 1:\n")
+		output.write("Daughter 1: " + node.data.daughter1_name + "\n")
 		if node.left != None:
 			if node.left.data != None:
 				tps = node.left.data.time_points.keys()
@@ -119,7 +119,7 @@ class CBTree:
 				for tp in tps:
 					output.write(astring.join(map(lambda x: str(x) + '\t', [tp] + node.left.data.time_points[tp].values()) + ['\n']))
 		#get d2 data
-		output.write("Daughter 2:\n")
+		output.write("Daughter 2: " + node.data.daughter2_name + "\n")
 		if node.right != None:
 			if node.right.data != None:
 				tps = node.right.data.time_points.keys()

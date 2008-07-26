@@ -15,6 +15,10 @@ class CellDiv:
 	= '', '', '', -1,  {}
 	def __init__(self, mother_name):
 		self.mother_name = mother_name
+		self.daughter1_name = ''
+		self.daughter2_name = ''
+		self.div_time=-1
+		self.time_points = {}
 
 
 def ValConvert(string_list):
@@ -56,6 +60,7 @@ def CreateDivTree(nuclei_zip):
 			if l[0] == 1 and not l[8].lower().startswith('polar'):
 				new_cell = True
 				cur_cd = CellDiv(l[8])
+				#print cur_cd.time_points
 				if l[1]-1 < 0:
 					new_cell = True
 					DivisionTree.leaf[l[8]].data = cur_cd
@@ -77,12 +82,21 @@ def CreateDivTree(nuclei_zip):
 				tph['diameter']=l[7]
 				tph['total_gfp']=l[9]
 				cur_cd.time_points[i+1]=tph
+				#print "cur_cd timepoints:"
+				#print cur_cd.time_points
 				#need to find node if it exists, could use a prior check or tree search  - then append any new data to node
 				#print DivisionTree.printTree(root)
 				if not new_cell or l[1]-1 < 0:		#This is not a new cell, append data to existing node
+					#print "update:\nbefore:\n"
+					#print  DivisionTree.leaf[l[8]].data.time_points
 					DivisionTree.leaf[l[8]].data.time_points.update(cur_cd.time_points)
+					#print "after:\n"
+					#print  DivisionTree.leaf[l[8]].data.time_points
 				else:					#We have a new cell, insert a node
 					cur_node = DivisionTree.insertByParent(cur_cd,DivisionTree.leaf[prior_file[l[1]-1][8]],l[8])
+					#print "new node:\n"
+					#print  cur_node.data.time_points
+				del cur_cd
 		prior_file = cur_file
 	#dt_tmp=open('dt_tmp.txt','w')
 	#pickle.dump(DivisionTree,dt_tmp,2)
