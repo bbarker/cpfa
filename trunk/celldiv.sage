@@ -35,21 +35,21 @@ class EmbryoBench:
 	embryo, conf_file_path, conf_file, EMBRYO_DIR,\
 	CELLDIV_DIR, BENCHMARK_LIST \
 	= {}, './cpfa.conf', None, '', '', ''
-	def __init__():
-	for i in range(0, len(sys.argv)):
-		if sys.argv[i] == "-c":
-			conf_file_path = sys.argv[i+1]
-		else:
-			conf_file_path='./cpfa.conf'
-	conf_file = open(conf_file_path,'r')
-	line = map(lambda x: x.strip() , conf_file.readlines())
-	for i in range(0, len(line)):
-		if line[i].startswith('EMBRYO_DIR='):
-			EMBRYO_DIR = line[i].replace('EMBRYO_DIR=','')
-		elif line[i].startswith('CELLDIV_DIR='):
-			CELLDIV_DIR = line[i].replace('CELLDIV_DIR=','')
-		elif line[i].startswith('BENCHMARK_LIST='):
-			BENCHMARK_LIST = line[i].replace('BENCHMARK_LIST=','')
+	def __init__(self):
+		for i in range(0, len(sys.argv)):
+			if sys.argv[i] == "-c":
+				conf_file_path = sys.argv[i+1]
+			else:
+				conf_file_path='./cpfa.conf'
+		conf_file = open(conf_file_path,'r')
+		line = map(lambda x: x.strip() , conf_file.readlines())
+		for i in range(0, len(line)):
+			if line[i].startswith('EMBRYO_DIR='):
+				EMBRYO_DIR = line[i].replace('EMBRYO_DIR=','')
+			elif line[i].startswith('CELLDIV_DIR='):
+				CELLDIV_DIR = line[i].replace('CELLDIV_DIR=','')
+			elif line[i].startswith('BENCHMARK_LIST='):
+				BENCHMARK_LIST = line[i].replace('BENCHMARK_LIST=','')
 					
 
 def CreateDivTree(nuclei_zip):
