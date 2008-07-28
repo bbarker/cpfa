@@ -31,26 +31,6 @@ def ValConvert(string_list):
 	val_list.append(Int(string_list[10]))
 	return val_list
 
-class EmbryoBench:
-	embryo, conf_file_path, conf_file, EMBRYO_DIR,\
-	CELLDIV_DIR, BENCHMARK_LIST \
-	= {}, './cpfa.conf', None, '', '', ''
-	def __init__(self):
-		for i in range(0, len(sys.argv)):
-			if sys.argv[i] == "-c":
-				self.conf_file_path = sys.argv[i+1]
-			else:
-				self.conf_file_path='./cpfa.conf'
-		self.conf_file = open(self.conf_file_path,'r')
-		line = map(lambda x: x.strip() , self.conf_file.readlines())
-		for i in range(0, len(line)):
-			if line[i].startswith('EMBRYO_DIR='):
-				self.EMBRYO_DIR = line[i].replace('EMBRYO_DIR=','')
-			elif line[i].startswith('CELLDIV_DIR='):
-				self.CELLDIV_DIR = line[i].replace('CELLDIV_DIR=','')
-			elif line[i].startswith('BENCHMARK_LIST='):
-				self.BENCHMARK_LIST = line[i].replace('BENCHMARK_LIST=','')
-
 
 def CreateDivTree(nuclei_zip):
 	#create a module for utils??? - to allow for pickling
@@ -103,21 +83,11 @@ def CreateDivTree(nuclei_zip):
 				tph['diameter']=l[7]
 				tph['total_gfp']=l[9]
 				cur_cd.time_points[i+1]=tph
-				#print "cur_cd timepoints:"
-				#print cur_cd.time_points
 				#need to find node if it exists, could use a prior check or tree search  - then append any new data to node
-				#print DivisionTree.printTree(root)
 				if not new_cell or l[1]-1 < 0:		#This is not a new cell, append data to existing node
-					#print "update:\nbefore:\n"
-					#print  DivisionTree.leaf[l[8]].data.time_points
 					DivisionTree.leaf[l[8]].data.time_points.update(cur_cd.time_points)
-					#print "after:\n"
-					#print  DivisionTree.leaf[l[8]].data.time_points
 				else:					#We have a new cell, insert a node
 					cur_node = DivisionTree.insertByParent(cur_cd,DivisionTree.leaf[prior_file[l[1]-1][8]],l[8])
-					#print "new node:\n"
-					#print  cur_node.data.time_points
-				del cur_cd
 		prior_file = cur_file
 	#dt_tmp=open('dt_tmp.txt','w')
 	#pickle.dump(DivisionTree,dt_tmp,2)
@@ -125,6 +95,33 @@ def CreateDivTree(nuclei_zip):
 	return DivisionTree
 
 
+def CalcSecondaryFeatures(DivisionTree):
+"""
+CalcSecondaryFeatures traverses the tree a second time
+and calculates some secondary features based on those
+read in from the nuclei files
+"""
+	
+	return DivisionTree
 
 
+class EmbryoBench:
+	embryo, conf_file_path, conf_file, EMBRYO_DIR,\
+	CELLDIV_DIR, BENCHMARK_LIST \
+	= {}, './cpfa.conf', None, '', '', ''
+	def __init__(self):
+		for i in range(0, len(sys.argv)):
+			if sys.argv[i] == "-c":
+				self.conf_file_path = sys.argv[i+1]
+			else:
+				self.conf_file_path='./cpfa.conf'
+		self.conf_file = open(self.conf_file_path,'r')
+		line = map(lambda x: x.strip() , self.conf_file.readlines())
+		for i in range(0, len(line)):
+			if line[i].startswith('EMBRYO_DIR='):
+				self.EMBRYO_DIR = line[i].replace('EMBRYO_DIR=','')
+			elif line[i].startswith('CELLDIV_DIR='):
+				self.CELLDIV_DIR = line[i].replace('CELLDIV_DIR=','')
+			elif line[i].startswith('BENCHMARK_LIST='):
+				self.BENCHMARK_LIST = line[i].replace('BENCHMARK_LIST=','')
 	

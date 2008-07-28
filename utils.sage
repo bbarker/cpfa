@@ -11,6 +11,10 @@ import pprint
 ##global rexexes##
 #typestr = re.compile('\'\S\'')
 
+def distance(p1,p2):
+	diff_tup = tuple((vector(p1)-vector(p2)))
+	return sqrt(sum(map(lambda x: x^2, diff_tup)))
+
 #returns a stratified list (or hash - if items in LoL[i][col] aren't all int)
 #of lists indexed by the items in LoL[i][col] (i in [0,len(LoL)]
 #convert will attempt to justify indices to 0 and use an array instead of a dict
@@ -96,6 +100,44 @@ class CBTree:
 	def printNode(self, target, node):
 		print node.key
 		return None
+
+	def secondaryFeature(self, target, node):
+		#First calculate features that require only the current node.
+		if node != None:
+			if node.data != None:
+				tps = node.data.time_points.keys()
+				tps.sort()
+				node.data.time_points[tps[0]]['diameter_fold'] = -1.0
+				node.data.time_points[tps[0]]['gfp_fold'] = -1.0
+				tps.pop(0)
+				for tp in tps: 
+					node.data.time_points[tp]['diameter_fold'] =  \
+					node.data.time_points[tp]['diameter'] /       \
+					node.data.time_points[tp-1]['diameter']
+					node.data.time_points[tp]['gfp_fold'] =       \
+					node.data.time_points[tp]['total_gfp'] /      \
+					node.data.time_points[tp-1]['total_gfp']
+		#Now calculate features that only require current node and parent.
+		#Perhaps somewhat confusingly, the current node 
+		#if node.parent != None and node != None
+		#	if node.parent.data != None and node.data != None
+		#Now calculate features that require the current node as well as
+		#it's sister and parent.
+		if node.left != None and node.right != None
+			if node.left.data != None and node.right.data != None
+				tps = list(set.intersection(set(node.left.data.time_points.keys()) \
+				, set(node.right.data.time_points.keys())))
+				tps.sort()	
+				for tp in tps:
+					node.left.data.time_points[tp]['ratio_diam_sisterdiam'] = \
+					node.left.data.time_points[tp]['diameter']/node.right.data.time_points[tp]['diameter']
+					node.right.data.time_points[tp]['ratio_diam_sisterdiam'] = 1/ \
+					node.left.data.time_points[tp]['ratio_diam_sisterdiam']
+
+					node.left.data.time_points[tp]['ratio_gfp_sistergfp'] = \
+					node.left.data.time_points[tp]['total_gfp']/node.right.data.time_points[tp]['total_gfp']
+					node.right.data.time_points[tp]['ratio_gfp_sistergfp'] = 1/ \
+					node.left.data.time_points[tp]['ratio_gfp_sistergfp']
 
 	def printCellDiv(self, output, node):
 		if node.data == None:
