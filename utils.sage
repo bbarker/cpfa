@@ -127,7 +127,7 @@ class CBTree:
 			if node.left.data != None and node.right.data != None
 				tps = list(set.intersection(set(node.left.data.time_points.keys()) \
 				, set(node.right.data.time_points.keys())))
-				tps.sort()	
+				tps.sort()
 				for tp in tps:
 					node.left.data.time_points[tp]['ratio_diam_sisterdiam'] = \
 					node.left.data.time_points[tp]['diameter']/node.right.data.time_points[tp]['diameter']
@@ -138,7 +138,14 @@ class CBTree:
 					node.left.data.time_points[tp]['total_gfp']/node.right.data.time_points[tp]['total_gfp']
 					node.right.data.time_points[tp]['ratio_gfp_sistergfp'] = 1/ \
 					node.left.data.time_points[tp]['ratio_gfp_sistergfp']
-
+					cx = (node.left.data.time_points[tp]['x'] + node.right.data.time_points[tp]['x'])/2
+					cy = (node.left.data.time_points[tp]['y'] + node.right.data.time_points[tp]['y'])/2
+					cz = (node.left.data.time_points[tp]['z'] + node.right.data.time_points[tp]['z'])/2	
+					node.left.data.time_points[tp]['sister-self_centroid_dist_from_mother'] =  \
+					node.right.data.time_points[tp]['sister-self_centroid_dist_from_mother'] = \
+					distance((node.data.time_points[tps[len(tps)-1]]['x'], node.data.time_points[tps[len(tps)-1]]['y'], \
+					node.data.time_points[tps[len(tps)-1]]['z']), (cx,cy,cz))
+				
 	def printCellDiv(self, output, node):
 		if node.data == None:
 			return None
