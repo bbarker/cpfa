@@ -4,4 +4,4 @@ load celldiv.sage
 
 eb=EmbryoBench()
 
-print eb.BENCHMARK_LIST
+#print eb.end_time

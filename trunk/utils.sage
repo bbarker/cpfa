@@ -123,8 +123,8 @@ class CBTree:
 		#	if node.parent.data != None and node.data != None
 		#Now calculate features that require the current node as well as
 		#it's sister and parent.
-		if node.left != None and node.right != None
-			if node.left.data != None and node.right.data != None
+		if node.left != None and node.right != None:
+			if node.left.data != None and node.right.data != None:
 				tps = list(set.intersection(set(node.left.data.time_points.keys()) \
 				, set(node.right.data.time_points.keys())))
 				tps.sort()
