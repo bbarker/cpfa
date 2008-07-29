@@ -141,6 +141,5 @@ class EmbryoBench:
 				nfiles = p.files('*' + nuc + '*zip*')
 				for nf in nfiles:
 					mtime_nuc[nf.mtime]=nf.strip()
-				print mtime_nuc[max(mtime_nuc.keys())]
-				
-		
+				print mtime_nuc[max(mtime_nuc.keys())] + " has beend loaded from the nuclei file.\n"
+				embryo[nuc] = CreateDivTree(mtime_nuc[max(mtime_nuc.keys())], self.end_time[nuc])	
