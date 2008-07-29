@@ -3,6 +3,7 @@
 load utils.sage
 import sys
 from zipfile import ZipFile
+from path import path
 #import re
 
 Int = Integer #for shorthand purposes... 
@@ -32,7 +33,7 @@ def ValConvert(string_list):
 	return val_list
 
 
-def CreateDivTree(nuclei_zip):
+def CreateDivTree(nuclei_zip, last_tp=Infinity):
 	#create a module for utils??? - to allow for pickling
 	DivisionTree = CBTree()
 	#tp = re.compile('\d+')
@@ -47,7 +48,8 @@ def CreateDivTree(nuclei_zip):
 	NucList = NucFile.namelist()
 	prior_file = []
 	next_file = cur_file = stratify(0,map(ValConvert,[fline.strip().split(',') for fline in NucFile.read(NucList[0]).rstrip().split('\n')]),True)
-	for i in range(0,len(NucList)):  	#time for a nasty parsing line - just to make things perlesque
+	last_tp = min(last_tp, len(NucList))
+	for i in range(0,last_tp):  	#time for a nasty parsing line - just to make things perlesque
 		#cur_time = Int(tp.findall(NucList[i])[0])
 		cur_file = next_file
 		if cur_file == []:
@@ -95,20 +97,11 @@ def CreateDivTree(nuclei_zip):
 	return DivisionTree
 
 
-def CalcSecondaryFeatures(DivisionTree):
-"""
-CalcSecondaryFeatures traverses the tree a second time
-and calculates some secondary features based on those
-read in from the nuclei files
-"""
-	
-	return DivisionTree
-
 
 class EmbryoBench:
 	embryo, conf_file_path, conf_file, EMBRYO_DIR,\
-	CELLDIV_DIR, BENCHMARK_LIST \
-	= {}, './cpfa.conf', None, '', '', ''
+	CELLDIV_DIR, BENCHMARK_LIST, end_time, nuclei_files \
+	= {}, './cpfa.conf', None, '', '', '', {}, []
 	def __init__(self):
 		for i in range(0, len(sys.argv)):
 			if sys.argv[i] == "-c":
@@ -124,4 +117,30 @@ class EmbryoBench:
 				self.CELLDIV_DIR = line[i].replace('CELLDIV_DIR=','')
 			elif line[i].startswith('BENCHMARK_LIST='):
 				self.BENCHMARK_LIST = line[i].replace('BENCHMARK_LIST=','')
-	
+			elif line[i].startswith('EMBRYOS_TO_LOAD='):
+				self.EMBRYOS_TO_LOAD = line[i].replace('EMBRYOS_TO_LOAD=','')
+		bmlist = open(self.BENCHMARK_LIST,'r')
+		line = map(lambda x: x.split() , bmlist.readlines())
+		line.pop(0)
+		bmlist.close()
+		for l in line:
+			self.end_time[l[0]] = Integer(l[2])
+		#load each nuclei file.  later, get it to attempt loading a tree if the write time on the tree file is newer
+		#than the nuclei file
+		potential_directories = []
+		line = self.EMBRYO_DIR.split(',') 
+		for l in line:
+			potential_directories += map(lambda x: x.basename(), path(l).dirs())
+		nuclei = list(set(self.end_time.keys()).intersection(potential_directories))
+		if self.EMBRYOS_TO_LOAD.strip().lower() != 'all':
+			nuclei = list(set(nuclei).intersection(self.EMBRYOS_TO_LOAD.split(',')))
+		for nuc in nuclei:
+			mtime_nuc = {}
+			p = path.joinpath(path(self.EMBRYO_DIR), nuc, 'annot/dats')
+			if p.isdir():
+				nfiles = p.files('*' + nuc + '*zip*')
+				for nf in nfiles:
+					mtime_nuc[nf.mtime]=nf.strip()
+				print mtime_nuc[max(mtime_nuc.keys())]
+				
+		
