@@ -4,7 +4,7 @@ load utils.sage
 import sys
 from zipfile import ZipFile
 from bz2 import BZ2File
-from Gnuplot import *
+import Gnuplot
 from path import path
 #import re
 import cPickle
@@ -134,7 +134,7 @@ class EmbryoBench:
 	CELLDIV_DIR, BENCHMARK_LIST, end_time, nuclei_files, gp \
 	= {}, './cpfa.conf', None, '', '', '', {}, [], None
 	def __init__(self):
-		self.gp = Gnuplot(debug=1)
+		self.gp = Gnuplot.Gnuplot(debug=1)
 		self.conf_file_path='./cpfa.conf'
 		reload = '' 
 		for i in range(0, len(sys.argv)):
@@ -167,8 +167,14 @@ class EmbryoBench:
 		potential_directories = []
 		line = self.EMBRYO_DIR.split(',') 
 		for l in line:
-			potential_directories += map(lambda x: x.basename(), path(l).dirs())
-		nuclei = list(set(self.end_time.keys()).intersection(potential_directories))
+			if path(l).isdir():
+				potential_directories += map(lambda x: x.basename(), path(l).dirs())
+		trees = []
+		for bl in self.end_time.keys():
+			tfile = path.joinpath(path(self.CELLDIV_DIR), bl + '.divtree.bz2')
+			if tfile.isfile():
+				trees += [bl]
+		nuclei = list(set(self.end_time.keys()).intersection(potential_directories+trees))
 		if self.EMBRYOS_TO_LOAD.strip().lower() != 'all':
 			nuclei = list(set(nuclei).intersection(self.EMBRYOS_TO_LOAD.split(',')))
 		#only reload nuclei that are specified or new embryos
@@ -185,9 +191,11 @@ class EmbryoBench:
 		for nuc in nuclei:
 			tfile = path.joinpath(path(self.CELLDIV_DIR), nuc + '.divtree.bz2')
 			if tfile.isfile():
-				if path(newest[nuc]).mtime > tfile.mtime:
-					new_embryos += [nuc]	
-				else: 
+				if newest.get(nuc) != None:
+					if path(newest[nuc]).mtime > tfile.mtime:
+						new_embryos += [nuc]	
+				else:
+					print tfile.strip() + " is being loaded from compressed tree.\n"
 					treefile = BZ2File(tfile,'r')
 					self.embryo[nuc]=cPickle.load(treefile)
 					treefile.close()		
