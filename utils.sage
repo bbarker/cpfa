@@ -334,7 +334,7 @@ class CBTree:
 					elif loc == 'r' or loc == 'v' or loc == 'p':
 						return self.lookup(root.right, target)
 				else:
-					return self.bfs(target, self.root, self.findNode).next()
+					return self.bfs(target, self.root, self.findNode)
 
 
  
