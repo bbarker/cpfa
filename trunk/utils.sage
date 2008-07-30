@@ -1,4 +1,4 @@
-#!/Applications/sag/sage 
+#!/Applications/sage/sage 
 # vim:set syntax=python:
 
 import sys
@@ -10,6 +10,40 @@ import pprint
 
 ##global rexexes##
 #typestr = re.compile('\'\S\'')
+
+def get_closing_idx(dir, start, dleft, dright, text):
+	tupr = ()
+	stack=0
+	if dir < 0:
+		tupr = (start,-1,-1)
+	else:
+		tupr = (start,len(text),1)
+	for i in range(tupr[0],tupr[1],tupr[2]):
+		if text[i] == dleft:
+			stack += 1
+		elif text[i] == dright:
+			stack -= 1
+		if stack == 0:
+			return i
+		
+#this will eventually be added to the newick library
+def del_newick_nodes(rmnode,tree):
+	tree=tree.strip()
+	pstack=[]
+	for nd in rmnode:
+		nd_idx = tree.find(nd)-1
+		if nd_idx > 0:
+			if tree[nd_idx+len(nd)+2]==')' and tree[nd_idx-1]!=',': # Do left traversal
+				break		
+			elif tree[nd_idx+len(nd)+2]=='(' and tree[nd_idx-1]=='(': # Do right traversal
+				break
+			elif tree[nd_idx-1]==',': #del left comma + node
+				break
+			else: #del node + right comma
+				break
+	
+		
+	
 
 def distance(p1,p2):
 	diff_tup = tuple((vector(p1)-vector(p2)))
@@ -111,12 +145,16 @@ class CBTree:
 				node.data.time_points[tps[0]]['gfp_fold'] = -1.0
 				tps.pop(0)
 				for tp in tps: 
-					node.data.time_points[tp]['diameter_fold'] =  \
-					node.data.time_points[tp]['diameter'] /       \
-					node.data.time_points[tp-1]['diameter']
-					node.data.time_points[tp]['gfp_fold'] =       \
-					node.data.time_points[tp]['total_gfp'] /      \
-					node.data.time_points[tp-1]['total_gfp']
+					node.data.time_points[tp]['diameter_fold'] =  RR(\
+					node.data.time_points[tp]['diameter'] /          \
+					node.data.time_points[tp-1]['diameter'])
+					if node.data.time_points[tp-1]['total_gfp'] == 0:
+						print node.key + "has 0 gfp at time " + str(tp-1) + "\n"
+						node.data.time_points[tp]['gfp_fold'] = RR(-1)  
+					else:
+						node.data.time_points[tp]['gfp_fold'] =  RR(  \
+						node.data.time_points[tp]['total_gfp'] /      \
+						node.data.time_points[tp-1]['total_gfp'])
 		#Now calculate features that only require current node and parent.
 		#Perhaps somewhat confusingly, the current node 
 		#if node.parent != None and node != None
@@ -130,22 +168,28 @@ class CBTree:
 				tps.sort()
 				max_p_tp = max(node.data.time_points.keys())
 				for tp in tps:
-					node.left.data.time_points[tp]['ratio_diam_sisterdiam'] = \
-					node.left.data.time_points[tp]['diameter']/node.right.data.time_points[tp]['diameter']
-					node.right.data.time_points[tp]['ratio_diam_sisterdiam'] = 1/ \
+					node.left.data.time_points[tp]['ratio_diam_sisterdiam'] = RR(\
+					node.left.data.time_points[tp]['diameter']/node.right.data.time_points[tp]['diameter'])
+					node.right.data.time_points[tp]['ratio_diam_sisterdiam'] = 1.0/ \
 					node.left.data.time_points[tp]['ratio_diam_sisterdiam']
-
-					node.left.data.time_points[tp]['ratio_gfp_sistergfp'] = \
-					node.left.data.time_points[tp]['total_gfp']/node.right.data.time_points[tp]['total_gfp']
-					node.right.data.time_points[tp]['ratio_gfp_sistergfp'] = 1/ \
-					node.left.data.time_points[tp]['ratio_gfp_sistergfp']
-					cx = (node.left.data.time_points[tp]['x'] + node.right.data.time_points[tp]['x'])/2
-					cy = (node.left.data.time_points[tp]['y'] + node.right.data.time_points[tp]['y'])/2
-					cz = (node.left.data.time_points[tp]['z'] + node.right.data.time_points[tp]['z'])/2	
+					
+					if (node.right.data.time_points[tp]['total_gfp'] == 0 or \
+					node.left.data.time_points[tp]['total_gfp'] == 0):
+						print node.key + " has children with 0 gfp at time " + str(tp) + "\n"
+						node.left.data.time_points[tp]['ratio_gfp_sistergfp'] = \
+						node.right.data.time_points[tp]['ratio_gfp_sistergfp'] = RR(-1)
+					else:
+						node.left.data.time_points[tp]['ratio_gfp_sistergfp'] = RR(\
+						node.left.data.time_points[tp]['total_gfp']/node.right.data.time_points[tp]['total_gfp'])
+						node.right.data.time_points[tp]['ratio_gfp_sistergfp'] = 1.0/ \
+						node.left.data.time_points[tp]['ratio_gfp_sistergfp']
+					cx = RR(node.left.data.time_points[tp]['x'] + node.right.data.time_points[tp]['x'])/2
+					cy = RR(node.left.data.time_points[tp]['y'] + node.right.data.time_points[tp]['y'])/2
+					cz = RR(node.left.data.time_points[tp]['z'] + node.right.data.time_points[tp]['z'])/2	
 					node.left.data.time_points[tp]['sister-self_centroid_dist_from_mother'] =  \
 					node.right.data.time_points[tp]['sister-self_centroid_dist_from_mother'] = \
-					distance((node.data.time_points[max_p_tp]['x'], node.data.time_points[max_p_tp]['y'], \
-					node.data.time_points[max_p_tp]['z']), (cx,cy,cz))
+					distance(map(RR,(node.data.time_points[max_p_tp]['x'], node.data.time_points[max_p_tp]['y'], \
+					node.data.time_points[max_p_tp]['z'])), (cx,cy,cz))
 				
 	def printCellDiv(self, output, node):
 		if node.data == None:
@@ -249,7 +293,7 @@ class CBTree:
 
 
 #do a binary tree search, if that fails, fall back to breadth-first traversal (for non systematic names)
-	def lookup(self, true_root, root, target):
+	def lookup(self,root, target):
 		# looks for a value into the tree
 		if root == None:
 			return bfs(target, root, self.findNode)
@@ -260,11 +304,11 @@ class CBTree:
 			else:
 				if target.startswith(root.key):
 					if loc == 'l' or loc == 'd' or loc == 'a':
-						return self.lookup(true_root, root.left, target)
+						return self.lookup(root.left, target)
 					elif loc == 'r' or loc == 'v' or loc == 'p':
-						return self.lookup(true_root, root.right, target)
+						return self.lookup(root.right, target)
 				else:
-					return self.bfs(target, true_root, self.findNode)
+					return self.bfs(target, self.root, self.findNode)
 
 
  
