@@ -3,9 +3,10 @@
 load utils.sage
 import sys
 from zipfile import ZipFile
+from bz2 import BZ2File
 from path import path
 #import re
-
+import cPickle
 Int = Integer #for shorthand purposes... 
 
 #time points are stored in <cell>_data as an array 
@@ -38,12 +39,23 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 	DivisionTree = CBTree()
 	#tp = re.compile('\d+')
 	#Add initial cell names to the tree.
+	#store initial tree topology and names in config file later
 	root = DivisionTree.root = DivisionTree.addNode(None,None,'P')
 	cur_node = DivisionTree.insertByParent(None,root,'P0')
-	cur_node = DivisionTree.insertByParent(None,cur_node,'P1')
+	p1 = cur_node = DivisionTree.insertByParent(None,cur_node,'P1')
 	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'AB')
 	cur_node = DivisionTree.insertByParent(None,cur_node,'ABa')
 	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'ABp')
+	cur_node = DivisionTree.insertByParent(None,p1,'EMS')
+	cur_node = DivisionTree.insertByParent(None,p1,'P2')
+	DivisionTree.addLeaf(None,'P',root)
+	DivisionTree.addLeaf(None,'P0',root)
+	DivisionTree.addLeaf(None,'P1',root)
+	DivisionTree.addLeaf(None,'AB',root)
+	DivisionTree.addLeaf(None,'ABa',root)
+	DivisionTree.addLeaf(None,'ABp',root)
+	DivisionTree.addLeaf(None,'EMS',root)
+	DivisionTree.addLeaf(None,'P2',root)
 	NucFile = ZipFile(nuclei_zip,'r')
 	NucList = NucFile.namelist()
 	prior_file = []
@@ -60,7 +72,7 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 			next_file = []
 		for l in cur_file:
 			#all indices of l drop by 2 in total due to stratify
-			if l[0] == 1 and not l[8].lower().startswith('polar'):
+			if l[0] == 1 and not (l[8].lower().startswith('polar') or l[8].lower().startswith('nuc')):
 				new_cell = True
 				cur_cd = CellDiv(l[8])
 				#print cur_cd.time_points
@@ -91,9 +103,13 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 				else:					#We have a new cell, insert a node
 					cur_node = DivisionTree.insertByParent(cur_cd,DivisionTree.leaf[prior_file[l[1]-1][8]],l[8])
 		prior_file = cur_file
-	#dt_tmp=open('dt_tmp.txt','w')
-	#pickle.dump(DivisionTree,dt_tmp,2)
-	#dt_tmp.close()
+	#cleanup
+	#del DivisionTree.leaf['P']
+	#del DivisionTree.leaf['P0']
+	#del DivisionTree.leaf['P1']
+	#del DivisionTree.leaf['AB']
+	#del DivisionTree.leaf['ABa']
+	#del DivisionTree.leaf['ABp']
 	return DivisionTree
 
 
@@ -103,11 +119,16 @@ class EmbryoBench:
 	CELLDIV_DIR, BENCHMARK_LIST, end_time, nuclei_files \
 	= {}, './cpfa.conf', None, '', '', '', {}, []
 	def __init__(self):
+		self.conf_file_path='./cpfa.conf'
+		reload = '' 
 		for i in range(0, len(sys.argv)):
-			if sys.argv[i] == "-c":
+			if sys.argv[i] == "-c" or sys.argv[i] == "-config":
 				self.conf_file_path = sys.argv[i+1]
-			else:
-				self.conf_file_path='./cpfa.conf'
+			elif sys.argv[i] == "-r" or sys.argv[i] == "-reload":
+				reload = sys.argv[i+1]
+		reload_list=[]
+		if reload != '' and reload != 'all':
+			reload_list=list(set(reload.strip().split(',')))
 		self.conf_file = open(self.conf_file_path,'r')
 		line = map(lambda x: x.strip() , self.conf_file.readlines())
 		for i in range(0, len(line)):
@@ -134,6 +155,9 @@ class EmbryoBench:
 		nuclei = list(set(self.end_time.keys()).intersection(potential_directories))
 		if self.EMBRYOS_TO_LOAD.strip().lower() != 'all':
 			nuclei = list(set(nuclei).intersection(self.EMBRYOS_TO_LOAD.split(',')))
+		#only reload nuclei that are specified or new embryos
+		new_embryos = []
+		newest = {}
 		for nuc in nuclei:
 			mtime_nuc = {}
 			p = path.joinpath(path(self.EMBRYO_DIR), nuc, 'annot/dats')
@@ -141,6 +165,31 @@ class EmbryoBench:
 				nfiles = p.files('*' + nuc + '*zip*')
 				for nf in nfiles:
 					mtime_nuc[nf.mtime]=nf.strip()
-				print mtime_nuc[max(mtime_nuc.keys())] + " is being loaded from the nuclei file.\n"
-				self.embryo[nuc] = CreateDivTree(mtime_nuc[max(mtime_nuc.keys())], self.end_time[nuc])	
+				newest[nuc]=mtime_nuc[max(mtime_nuc.keys())]
+		for nuc in nuclei:
+			tfile = path.joinpath(path(self.CELLDIV_DIR), nuc + '.divtree.bz2')
+			if tfile.isfile():
+				if path(newest[nuc]).mtime > tfile.mtime:
+					new_embryos += [nuc]	
+				else: #unpickle
+					treefile = BZ2File(tfile,'r')
+					self.embryo[nuc]=cPickle.load(treefile)
+					treefile.close()		
+			else:
+				new_embryos += [nuc]
+		if reload == 'all':
+			reload_list=nuclei
+		else:
+			reload_list=list(set(nuclei).intersection(reload_list+new_embryos))
+		for nuc in reload_list:
+			mtime_nuc = {}
+			p = path.joinpath(path(self.EMBRYO_DIR), nuc, 'annot/dats')
+			if p.isdir():
+				print newest[nuc] + " is being loaded from the nuclei file.\n"
+				self.embryo[nuc] = CreateDivTree(newest[nuc], self.end_time[nuc])	
 				self.embryo[nuc].genExtraFeatures()
+		for nuc in self.embryo.keys():
+			treepath = path.joinpath(path(self.CELLDIV_DIR), nuc + ".divtree.bz2")
+			treefile = BZ2File(treepath.strip(),'w')
+			cPickle.dump(self.embryo[nuc], treefile)
+			treefile.close()
