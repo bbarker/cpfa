@@ -4,6 +4,7 @@ load utils.sage
 import sys
 from zipfile import ZipFile
 from bz2 import BZ2File
+from Gnuplot import *
 from path import path
 #import re
 import cPickle
@@ -32,6 +33,20 @@ def ValConvert(string_list):
 	val_list.append(string_list[9].rstrip().lstrip())
 	val_list.append(Int(string_list[10]))
 	return val_list
+
+def PlotCDFeature(gp, ltree, nucleus, feature):
+	nd = ltree.lookup(ltree.root, nucleus)
+	data = []	
+	if nd.data != None:
+		for tp in nd.data.time_points.keys():
+			data.append([tp,nd.data.time_points[tp][feature]])
+	if nd.left.data != None:
+		for tp in nd.left.data.time_points.keys():
+			data.append([tp,nd.left.data.time_points[tp][feature]])
+	if nd.right.data != None:
+		for tp in nd.right.data.time_points.keys():
+			data.append([tp,nd.right.data.time_points[tp][feature]])
+	gp.plot(data)	
 
 
 def CreateDivTree(nuclei_zip, last_tp=Infinity):
@@ -116,9 +131,10 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 
 class EmbryoBench:
 	embryo, conf_file_path, conf_file, EMBRYO_DIR,\
-	CELLDIV_DIR, BENCHMARK_LIST, end_time, nuclei_files \
-	= {}, './cpfa.conf', None, '', '', '', {}, []
+	CELLDIV_DIR, BENCHMARK_LIST, end_time, nuclei_files, gp \
+	= {}, './cpfa.conf', None, '', '', '', {}, [], None
 	def __init__(self):
+		self.gp = Gnuplot(debug=1)
 		self.conf_file_path='./cpfa.conf'
 		reload = '' 
 		for i in range(0, len(sys.argv)):
@@ -171,7 +187,7 @@ class EmbryoBench:
 			if tfile.isfile():
 				if path(newest[nuc]).mtime > tfile.mtime:
 					new_embryos += [nuc]	
-				else: #unpickle
+				else: 
 					treefile = BZ2File(tfile,'r')
 					self.embryo[nuc]=cPickle.load(treefile)
 					treefile.close()		
