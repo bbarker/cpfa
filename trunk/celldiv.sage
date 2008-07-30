@@ -61,21 +61,21 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'AB')
 	cur_node = DivisionTree.insertByParent(None,cur_node,'ABa')
 	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'ABp')
-	cur_node = DivisionTree.insertByParent(None,p1,'EMS')
-	cur_node = DivisionTree.insertByParent(None,p1,'P2')
-	DivisionTree.addLeaf(None,'P',root)
-	DivisionTree.addLeaf(None,'P0',root)
-	DivisionTree.addLeaf(None,'P1',root)
-	DivisionTree.addLeaf(None,'AB',root)
-	DivisionTree.addLeaf(None,'ABa',root)
-	DivisionTree.addLeaf(None,'ABp',root)
-	DivisionTree.addLeaf(None,'EMS',root)
-	DivisionTree.addLeaf(None,'P2',root)
+	#cur_node = DivisionTree.insertByParent(None,p1,'EMS')
+	#cur_node = DivisionTree.insertByParent(None,p1,'P2')
+	#DivisionTree.leaf['P0'] = None
+	#DivisionTree.leaf['P1'] = None
+	#DivisionTree.leaf['AB'] = None
+	##DivisionTree.leaf['ABa'] = None
+	#DivisionTree.leaf['ABp'] = None
+	#DivisionTree.leaf['EMS'] = None
+	#DivisionTree.leaf['P2'] = None
 	NucFile = ZipFile(nuclei_zip,'r')
 	NucList = NucFile.namelist()
 	prior_file = []
 	next_file = cur_file = stratify(0,map(ValConvert,[fline.strip().split(',') for fline in NucFile.read(NucList[0]).rstrip().split('\n')]),True)
 	last_tp = min(last_tp, len(NucList))
+	return DivisionTree
 	for i in range(0,last_tp):  	#time for a nasty parsing line - just to make things perlesque
 		#cur_time = Int(tp.findall(NucList[i])[0])
 		cur_file = next_file
