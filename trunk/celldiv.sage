@@ -34,8 +34,8 @@ def ValConvert(string_list):
 	val_list.append(Int(string_list[10]))
 	return val_list
 
-def PlotCDFeature(gp, ltree, nucleus, feature):
-	nd = ltree.lookup(ltree.root, nucleus)
+def PlotCDFeature(gp, ltree, nd, feature):
+	#nd = ltree.lookup(ltree.root, nucleus)
 	data = []	
 	if nd.data != None:
 		for tp in nd.data.time_points.keys():
@@ -48,6 +48,14 @@ def PlotCDFeature(gp, ltree, nucleus, feature):
 			data.append([tp,nd.right.data.time_points[tp][feature]])
 	gp.plot(data)	
 
+def PlotCDLookup(gp, ltree, nucleus, feature):
+	nd = ltree.lookup(ltree.root, nucleus)
+	PlotCDFeature(gp, ltree, nd, feature)
+
+#def BFT_Plot(gp, ltree, feature):
+#	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)
+#	for nd in nodes:
+#		PlotCDFeature(gp, ltree, nd, feature)
 
 def CreateDivTree(nuclei_zip, last_tp=Infinity):
 	#create a module for utils??? - to allow for pickling
