@@ -56,26 +56,27 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 	#Add initial cell names to the tree.
 	#store initial tree topology and names in config file later
 	root = DivisionTree.root = DivisionTree.addNode(None,None,'P')
-	cur_node = DivisionTree.insertByParent(None,root,'P0')
+	p0 = cur_node = DivisionTree.insertByParent(None,root,'P0')
 	p1 = cur_node = DivisionTree.insertByParent(None,cur_node,'P1')
-	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'AB')
-	cur_node = DivisionTree.insertByParent(None,cur_node,'ABa')
-	cur_node = DivisionTree.insertByParent(None,cur_node.parent,'ABp')
-	#cur_node = DivisionTree.insertByParent(None,p1,'EMS')
-	#cur_node = DivisionTree.insertByParent(None,p1,'P2')
-	#DivisionTree.leaf['P0'] = None
-	#DivisionTree.leaf['P1'] = None
-	#DivisionTree.leaf['AB'] = None
-	##DivisionTree.leaf['ABa'] = None
-	#DivisionTree.leaf['ABp'] = None
-	#DivisionTree.leaf['EMS'] = None
-	#DivisionTree.leaf['P2'] = None
+	ab = cur_node = DivisionTree.insertByParent(None,cur_node.parent,'AB')
+	aba = cur_node = DivisionTree.insertByParent(None,cur_node,'ABa')
+	abp = cur_node = DivisionTree.insertByParent(None,cur_node.parent,'ABp')
+	ems = cur_node = DivisionTree.insertByParent(None,p1,'EMS')
+	p2 = cur_node = DivisionTree.insertByParent(None,p1,'P2')
+	DivisionTree.leaf['P0']=p0
+	DivisionTree.leaf['P1']=p1
+	DivisionTree.leaf['AB']=ab
+	DivisionTree.leaf['ABa']=aba
+	DivisionTree.leaf['ABp']=abp
+	DivisionTree.leaf['EMS']=ems
+	DivisionTree.leaf['P2']=p2
+
 	NucFile = ZipFile(nuclei_zip,'r')
 	NucList = NucFile.namelist()
 	prior_file = []
 	next_file = cur_file = stratify(0,map(ValConvert,[fline.strip().split(',') for fline in NucFile.read(NucList[0]).rstrip().split('\n')]),True)
 	last_tp = min(last_tp, len(NucList))
-	return DivisionTree
+	#return DivisionTree
 	for i in range(0,last_tp):  	#time for a nasty parsing line - just to make things perlesque
 		#cur_time = Int(tp.findall(NucList[i])[0])
 		cur_file = next_file
@@ -93,6 +94,8 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 				#print cur_cd.time_points
 				if l[1]-1 < 0:
 					new_cell = True
+					print "new leaf:"
+					print l[8]
 					DivisionTree.leaf[l[8]].data = cur_cd
 				elif prior_file[l[1]-1][8] == l[8]:
 					new_cell = False
@@ -169,14 +172,21 @@ class EmbryoBench:
 		for l in line:
 			if path(l).isdir():
 				potential_directories += map(lambda x: x.basename(), path(l).dirs())
+		print "potential directories:"
+		print potential_directories
+
 		trees = []
 		for bl in self.end_time.keys():
 			tfile = path.joinpath(path(self.CELLDIV_DIR), bl + '.divtree.bz2')
 			if tfile.isfile():
 				trees += [bl]
+		print "tree files:"
+		print trees
 		nuclei = list(set(self.end_time.keys()).intersection(potential_directories+trees))
 		if self.EMBRYOS_TO_LOAD.strip().lower() != 'all':
 			nuclei = list(set(nuclei).intersection(self.EMBRYOS_TO_LOAD.split(',')))
+		print "embryos to load:"
+		print nuclei
 		#only reload nuclei that are specified or new embryos
 		new_embryos = []
 		newest = {}
@@ -188,17 +198,22 @@ class EmbryoBench:
 				for nf in nfiles:
 					mtime_nuc[nf.mtime]=nf.strip()
 				newest[nuc]=mtime_nuc[max(mtime_nuc.keys())]
+		def unpickle_tree():
+			print tfile.strip() + " is being loaded from compressed tree.\n"
+			treefile = BZ2File(tfile,'r')
+			self.embryo[nuc]=cPickle.load(treefile)
+			treefile.close()		
 		for nuc in nuclei:
 			tfile = path.joinpath(path(self.CELLDIV_DIR), nuc + '.divtree.bz2')
 			if tfile.isfile():
+				print "tfile is a file!\n"
 				if newest.get(nuc) != None:
 					if path(newest[nuc]).mtime > tfile.mtime:
 						new_embryos += [nuc]	
+					else:
+						unpickle_tree()
 				else:
-					print tfile.strip() + " is being loaded from compressed tree.\n"
-					treefile = BZ2File(tfile,'r')
-					self.embryo[nuc]=cPickle.load(treefile)
-					treefile.close()		
+					unpickle_tree()
 			else:
 				new_embryos += [nuc]
 		if reload == 'all':
