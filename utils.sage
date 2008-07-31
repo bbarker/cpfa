@@ -139,10 +139,11 @@ class CBTree:
 		#First calculate features that require only the current node.
 		if node != None:
 			if node.data != None:
+				print "SF, we made it this far!\n"
 				tps = node.data.time_points.keys()
 				tps.sort()
-				node.data.time_points[tps[0]]['diameter_fold'] = -1.0
-				node.data.time_points[tps[0]]['gfp_fold'] = -1.0
+				node.data.time_points[tps[0]]['diameter_fold'] = 1.0
+				node.data.time_points[tps[0]]['gfp_fold'] = 1.0
 				tps.pop(0)
 				for tp in tps: 
 					node.data.time_points[tp]['diameter_fold'] =  RR(\

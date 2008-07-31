@@ -100,12 +100,12 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 				new_cell = True
 				cur_cd = CellDiv(l[8])
 				#print cur_cd.time_points
-				if l[1]-1 < 0:
+				if l[1]-1 < 0: #in the initial tree, so append data
 					new_cell = True
-					print "new leaf:"
-					print l[8]
 					DivisionTree.leaf[l[8]].data = cur_cd
-				elif prior_file[l[1]-1][8] == l[8]:
+				elif prior_file[l[1]-1][8] != l[8]: #new cell and new node,
+					new_cell = True					#no need to append data
+				else:
 					new_cell = False
 				tph = {}
 				if l[2] > 0 and l[3] > 0:
@@ -122,9 +122,20 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 				tph['z']=l[6]
 				tph['diameter']=l[7]
 				tph['total_gfp']=l[9]
+				#these are secondary features that are easiest to calculate in the first pass:
+				dist_vec = []
+				for ll in cur_file:
+					if l[8] != ll[8]:
+						dist_vec.append(RR(distance((tph['x'],tph['y'],tph['z']),(ll[4],ll[5],ll[6]))))
+				tph['L_min']=min(dist_vec)
+				l_dist = RR(-1)
+				if not l[1]-1 < 0:
+					l_dist = RR(distance((prior_file[l[1]-1][4],prior_file[l[1]-1][5],prior_file[l[1]-1][6]),(l[4],l[5],l[6])))	
+				tph['l']=l_dist
+				tph['l/(L_min/2)']= RR(tph['l']/(tph['L_min']/2))
 				cur_cd.time_points[i+1]=tph
 				#need to find node if it exists, could use a prior check or tree search  - then append any new data to node
-				if not new_cell or l[1]-1 < 0:		#This is not a new cell, append data to existing node
+				if not new_cell or l[1]-1 < 0:		#This is not a new node, append data to existing node
 					DivisionTree.leaf[l[8]].data.time_points.update(cur_cd.time_points)
 				else:					#We have a new cell, insert a node
 					cur_node = DivisionTree.insertByParent(cur_cd,DivisionTree.leaf[prior_file[l[1]-1][8]],l[8])
