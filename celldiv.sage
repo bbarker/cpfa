@@ -52,6 +52,9 @@ def PlotCDLookup(gp, ltree, nucleus, feature):
 	nd = ltree.lookup(ltree.root, nucleus)
 	PlotCDFeature(gp, ltree, nd, feature)
 
+#def PlotAllTP(gp, ltree, feature):
+	
+
 #def BFT_Plot(gp, ltree, feature):
 #	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)
 #	for nd in nodes:
