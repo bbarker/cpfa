@@ -229,40 +229,20 @@ class CBTree:
 		else:
 			return None
 
-	def bfs(self, target, top_node, visit):
+	def bfs(self, target, top_node, visit, traverse=False):
 		"""Breadth-first search on a graph, starting at top_node."""
 		queue = [top_node]
 		while len(queue):
 			new_nodes_at = len(queue)-1
 			curr_node = queue.pop(0)    # Dequeue
-			if visit(target, curr_node) != None:
-				return visit(target, curr_node)
-			qlen=len(queue)
-			if (curr_node.left != None):
-				queue.extend([curr_node.left])
-			if (curr_node.right != None):
-				queue.extend([curr_node.right])
-			for i in range(new_nodes_at, qlen):
-				if (queue[i].left != None):
-					queue.extend([queue[i].left])
-				if (queue[i].right != None):
-					queue.extend([queue[i].right])
-		return None
-
-	def bfs_y(self, target, top_node, visit, traverse=False):
-		"""Breadth-first search on a graph, starting at top_node."""
-		queue = [top_node]
-		while len(queue):
-			new_nodes_at = len(queue)-1
-			curr_node = queue.pop(0)    # Dequeue
-			if visit(target, curr_node) != None:
+			if not traverse and visit(target, curr_node) != None:
 				yield visit(target, curr_node)
-				break
+				return	
 			elif traverse:
 				if visit(target, curr_node) != None:
 					yield visit(target, curr_node)
-					break
-				yield visit(target, curr_node)
+					return	
+				yield curr_node
 			qlen=len(queue)
 			if (curr_node.left != None):
 				queue.extend([curr_node.left])
@@ -273,6 +253,7 @@ class CBTree:
 					queue.extend([queue[i].left])
 				if (queue[i].right != None):
 					queue.extend([queue[i].right])
+		return
 
 	def printTree(self, root):
 		self.bfs("NotANode", root, self.printNode)
@@ -323,7 +304,7 @@ class CBTree:
 	def lookup(self,root, target):
 		# looks for a value into the tree
 		if root == None:
-			return bfs(target, root, self.findNode)
+			return self.bfs(target, root, self.findNode).next()
 		else:
 			# if it has found it...
 			if target == root.key:
@@ -335,7 +316,7 @@ class CBTree:
 					elif loc == 'r' or loc == 'v' or loc == 'p':
 						return self.lookup(root.right, target)
 				else:
-					return self.bfs(target, self.root, self.findNode)
+					return self.bfs(target, self.root, self.findNode).next()
 
 
  

@@ -52,14 +52,23 @@ def PlotCDLookup(gp, ltree, nucleus, feature):
 	nd = ltree.lookup(ltree.root, nucleus)
 	PlotCDFeature(gp, ltree, nd, feature)
 
-#def PlotAllTP(gp, ltree, feature):
-	
+def PlotAllTP(gp, ltree, feature):
+	data = []
+	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)	
+	for nd in nodes:
+		if nd != None:
+			if nd.data != None:
+				for tp in nd.data.time_points.keys():
+					data.append([tp,nd.data.time_points[tp][feature]])
+	gp.xlabel('time (minutes)')
+	gp.ylabel(feature)
+	gp.plot(data)			
 
 #def BFT_Plot(gp, ltree, feature):
 #	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)
 #	for nd in nodes:
 #		PlotCDFeature(gp, ltree, nd, feature)
-
+		
 def CreateDivTree(nuclei_zip, last_tp=Infinity):
 	#create a module for utils??? - to allow for pickling
 	DivisionTree = CBTree()
