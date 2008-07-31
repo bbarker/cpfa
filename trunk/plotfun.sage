@@ -26,7 +26,7 @@ def PlotCDLookup(gp, ltree, nucleus, feature):
 	nd = ltree.lookup(ltree.root, nucleus)
 	PlotCDFeature(gp, ltree, nd, feature)
 
-def PlotAllTP(gp, ltree, feature):
+def PlotAllTP(gp, ltree, feature, withstr):
 	data = []
 	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)	
 	for nd in nodes:
@@ -36,7 +36,42 @@ def PlotAllTP(gp, ltree, feature):
 					data.append([tp,nd.data.time_points[tp].get(feature)])
 	gp.xlabel('time (minutes)')
 	gp.ylabel(feature)
-	gp.plot(data)			
+	gp.plot(data, with=withstr)			
+
+
+def PlotAllTP2(gp, ltree, feature, withstr):
+	data = []
+	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)	
+	for nd in nodes:
+		if nd != None:
+			if nd.data != None:
+				for tp in nd.data.time_points.keys():
+					data.append([tp,nd.data.time_points[tp].get(feature)])
+	gp.xlabel('time (minutes)')
+	gp.ylabel(feature)
+	gp.plot(data, with=withstr)			
+
+
+def PlotDistrib2(gp, ltree, feature, ndigits):
+	data = {}
+	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)
+	threshold1 = 1
+	threshold2 = 2
+	count = 0
+	for nd in nodes:
+		if nd != None:
+			if nd.data != None:
+				for tp in nd.data.time_points.keys():
+					if data.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
+						data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+					else:
+						data[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
+	for k in data.keys():
+		if k >= threshold1 and k < threshold2:	
+			count += data[k] 
+	print "count is: " + str(count)
+	gp('set xrange [0:5]')
+	gp.plot(data.items())
 
 def PlotDistrib(gp, ltree, feature, ndigits):
 	data = {}

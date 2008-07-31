@@ -104,12 +104,19 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 				tph['z']=l[6]
 				tph['diameter']=l[7]
 				tph['total_gfp']=l[9]
+				tph['diam_overlap_err']=False
 				#these are secondary features that are easiest to calculate in the first pass:
-				dist_vec = []
+				dist_min = Infinity 
+				radii_sum = 0
 				for ll in cur_file:
 					if l[8] != ll[8]:
-						dist_vec.append(RR(distance((tph['x'],tph['y'],tph['z']),(ll[4],ll[5],ll[6]))))
-				tph['L_min']=min(dist_vec)
+						if RR(distance((tph['x'],tph['y'],tph['z']),(ll[4],ll[5],ll[6]))) < dist_min:
+							dist_min = RR(distance((tph['x'],tph['y'],tph['z']),(ll[4],ll[5],ll[6])))
+							radii_sum = RR(l[7]/2 + ll[7]/2)
+				
+				tph['L_min']=dist_min
+				if dist_min < radii_sum:
+					tph['diam_overlap_err']=True
 				l_dist = RR(-1)
 				if not l[1]-1 < 0:
 					l_dist = RR(distance((prior_file[l[1]-1][4],prior_file[l[1]-1][5],prior_file[l[1]-1][6]),(l[4],l[5],l[6])))	
