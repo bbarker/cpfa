@@ -59,10 +59,22 @@ def PlotAllTP(gp, ltree, feature):
 		if nd != None:
 			if nd.data != None:
 				for tp in nd.data.time_points.keys():
-					data.append([tp,nd.data.time_points[tp][feature]])
+					data.append([tp,nd.data.time_points[tp].get(feature)])
 	gp.xlabel('time (minutes)')
 	gp.ylabel(feature)
 	gp.plot(data)			
+
+def PlotDistrib(gp, ltree, feature, ndigits):
+	data = {}
+	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)
+	for nd in nodes:
+		if nd != None:
+			if nd.data != None:
+				for tp in nd.data.time_points.keys():
+					if data.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
+						data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+					else:
+						data[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
 
 #def BFT_Plot(gp, ltree, feature):
 #	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)
