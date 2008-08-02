@@ -2,6 +2,7 @@
 # vim:set syntax=python:
 load utils.sage
 load celldiv.sage
+import datetime
 import sys
 import Gnuplot
 from path import path
@@ -95,7 +96,7 @@ def PlotLRatio(gp, ltree, ndigits):
 	gp.ylabel('frequency')
 	gp('set xrange [0:5]')
 	#gp.plot(Gnuplot.Data(data.items(),with='points lc rgb "cyan"'), Gnuplot.Data(errdata.items(),with='points lc rgb "red"'))
-	gp.plot(Gnuplot.Data(data.items(),with='points lc rgb "cyan"'), Gnuplot.Data(errdata.items(),with='points lc rgb "red"'))
+	gp.plot(Gnuplot.Data(data.items(),with='lines'), Gnuplot.Data(errdata.items(),with='lines'))
 
 def PlotDistrib(gp, ltree, feature, ndigits):
 	data = {}
@@ -114,14 +115,20 @@ def PlotDistrib(gp, ltree, feature, ndigits):
 
 
 def GenReport(bench):
-	bench.gp('set term pdf')
-	bench.gp('set multiplot layout 4,2')
+	bench.gp('set term postscript')
+	reportdir = 'report' + rm_symbols_datetime.sub('',datetime.datetime.now().isoformat())
+	#os.mkdir(path.joinpath(path(bench.CELLDIV_DIR), reportdir))
 	for emb in bench.embryo.keys():
+		bench.gp('set multiplot layout 3,2 title ' + emb)
 		PlotAllTP(bench.gp, bench.embryo[emb], 'diameter','lines')
 		PlotAllTP(bench.gp, bench.embryo[emb], 'total_gfp','lines')
 		PlotAllTP(bench.gp, bench.embryo[emb], 'diameter_fold','lines')
 		PlotAllTP(bench.gp, bench.embryo[emb], 'gfp_fold','lines')	
-		bench.gp.hardcopy(path.joinpath(path(bench.CELLDIV_DIR), 'report'+ emb +'.pdf'))
-	bench.gp('unset multiplot')
-	bench.gp('set term aqua') #fix this to be generic 
+		PlotLRatio(bench.gp, eb.embryo[emb], 2) 
+		PlotAllTP(bench.gp, bench.embryo[emb], 'sister-self_centroid_dist_from_mother','lines') 
+		
+		bench.gp('unset multiplot')
+	#bench.gp.hardcopy(path.joinpath(path(bench.CELLDIV_DIR), reportdir, emb +'.ps'))
+	bench.gp.hardcopy(path.joinpath(path(bench.CELLDIV_DIR), reportdir +'.ps'))
+	bench.gp('set term ' + Gnuplot.gp.GnuplotOpts.default_term)  
 	
