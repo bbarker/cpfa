@@ -139,7 +139,6 @@ class CBTree:
 		#First calculate features that require only the current node.
 		if node != None:
 			if node.data != None:
-				print "SF, we made it this far!\n"
 				tps = node.data.time_points.keys()
 				tps.sort()
 				node.data.time_points[tps[0]]['diameter_fold'] = 1.0
@@ -256,10 +255,12 @@ class CBTree:
 		return
 
 	def printTree(self, root):
-		self.bfs("NotANode", root, self.printNode)
+		self.bfs("NotANode", root, self.printNode).next()
 	
 	def genExtraFeatures(self):
-		self.bfs("NotANode", self.root, self.secondaryFeature)
+		nodes = self.bfs("NotANode", self.root, self.secondaryFeature)
+		for nd in nodes:
+			nd.next()
 
 	def printLineage(self, output_file):
 		output=open(output_file,'w')

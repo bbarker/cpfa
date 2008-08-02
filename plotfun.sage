@@ -26,52 +26,76 @@ def PlotCDLookup(gp, ltree, nucleus, feature):
 	nd = ltree.lookup(ltree.root, nucleus)
 	PlotCDFeature(gp, ltree, nd, feature)
 
-def PlotAllTP(gp, ltree, feature, withstr):
+def PlotAllTP(gp, ltree, feature, withstr=''):
+	data = {} 
+	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)	
+	for nd in nodes:
+		if nd != None:
+			if nd.data != None:
+				for tp in nd.data.time_points.keys():
+					data[tp]=nd.data.time_points[tp].get(feature)
+	xmin = min(data.keys())-1	
+	xmax = max(data.keys())+1
+	gp('set xrange[' + str(xmin) + ':' + str(xmax) + ']')
+	gp.xlabel('time (minutes)')
+	gp.ylabel(feature)
+	if withstr == '':
+		gp.plot(Gnuplot.Data(data.items()))
+	else:
+		gp.plot(Gnuplot.Data(data.items(), with=withstr))			
+
+
+def PlotLminDist(gp, ltree):
+	radii = []
+	Lmin_o_2 = []
 	data = []
 	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)	
 	for nd in nodes:
 		if nd != None:
 			if nd.data != None:
 				for tp in nd.data.time_points.keys():
-					data.append([tp,nd.data.time_points[tp].get(feature)])
+					data.append([tp,RR(nd.data.time_points[tp].get('L_min')/nd.data.time_points[tp].get('diameter'))])
 	gp.xlabel('time (minutes)')
-	gp.ylabel(feature)
-	gp.plot(data, with=withstr)			
+	gp.ylabel('length ratio of L_min/diameter')
+	gp('set xrange [0:199]')
+	gp.plot(Gnuplot.Data(data, with='points lc rgb "red"'))
 
 
-def PlotAllTP2(gp, ltree, feature, withstr):
-	data = []
-	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)	
-	for nd in nodes:
-		if nd != None:
-			if nd.data != None:
-				for tp in nd.data.time_points.keys():
-					data.append([tp,nd.data.time_points[tp].get(feature)])
-	gp.xlabel('time (minutes)')
-	gp.ylabel(feature)
-	gp.plot(data, with=withstr)			
-
-
-def PlotDistrib2(gp, ltree, feature, ndigits):
+def PlotLRatio(gp, ltree, ndigits):
+	feature='l/(L_min/2)'
 	data = {}
+	errdata = {}
 	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)
 	threshold1 = 1
 	threshold2 = 2
-	count = 0
 	for nd in nodes:
 		if nd != None:
 			if nd.data != None:
 				for tp in nd.data.time_points.keys():
-					if data.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
-						data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+					if nd.data.time_points[tp].get('diam_overlap_err') == False:
+						if data.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
+							data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+						else:
+							data[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
 					else:
-						data[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
+						if errdata.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
+							errdata[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+						else:
+							errdata[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
+	errcount = 0
+	count = 0
+	for k in errdata.keys():
+		errcount += errdata[k]
 	for k in data.keys():
-		if k >= threshold1 and k < threshold2:	
-			count += data[k] 
-	print "count is: " + str(count)
+		count += data[k]
+	print "Non-error count is: " + str(count) + "\n"
+	print "Error count is: " + str(errcount) + "\n"
+	print "Percent Error is: " + str(RR(100*errcount/(errcount+count)))
+	gp.xlabel(feature)
+	gp.ylabel('frequency')
 	gp('set xrange [0:5]')
-	gp.plot(data.items())
+	#gp.plot(Gnuplot.Data(data.items(),with='points lc rgb "cyan"'), Gnuplot.Data(errdata.items(),with='points lc rgb "red"'))
+	gp.plot(Gnuplot.Data(data.items(),with='points lc rgb "cyan"'), Gnuplot.Data(errdata.items(),with='points lc rgb "red"'))
 
 def PlotDistrib(gp, ltree, feature, ndigits):
 	data = {}
@@ -84,8 +108,20 @@ def PlotDistrib(gp, ltree, feature, ndigits):
 						data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
 					else:
 						data[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
+	gp.xlabel(feature)
+	gp.ylabel('frequency')
 	gp.plot(data.items())
 
 
-						
-
+def GenReport(bench):
+	bench.gp('set term pdf')
+	bench.gp('set multiplot layout 4,2')
+	for emb in bench.embryo.keys():
+		PlotAllTP(bench.gp, bench.embryo[emb], 'diameter','lines')
+		PlotAllTP(bench.gp, bench.embryo[emb], 'total_gfp','lines')
+		PlotAllTP(bench.gp, bench.embryo[emb], 'diameter_fold','lines')
+		PlotAllTP(bench.gp, bench.embryo[emb], 'gfp_fold','lines')	
+		bench.gp.hardcopy(path.joinpath(path(bench.CELLDIV_DIR), 'report'+ emb +'.pdf'))
+	bench.gp('unset multiplot')
+	bench.gp('set term aqua') #fix this to be generic 
+	
