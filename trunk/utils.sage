@@ -5,11 +5,12 @@ import sys
 import subprocess
 from sage.all import *
 import pprint
-#import re
+import re
 #pp = pprint.PrettyPrinter(indent=4)
 
 ##global rexexes##
 #typestr = re.compile('\'\S\'')
+rm_symbols_datetime = re.compile('[\-\:\.\,]')
 
 def get_closing_idx(dir, start, dleft, dright, text):
 	tupr = ()
@@ -227,6 +228,25 @@ class CBTree:
 			return node
 		else:
 			return None
+
+
+	def aChild(self, target, node):
+		"""Used as a visit (traversal) function for bfs.  It only returns data for exactly
+		   one child of every node.  This is used when we want to look at, say, the distribution
+			of sister-sister feature ratios."""
+		nl = False
+		nr = False
+		if node.left != None:
+			if node.left.data != None:
+				nl = True
+		if node.right != None:
+			if node.right.data != None:
+				nr = True
+		if nr:
+			return node.right
+		elif nl:
+			return node.left
+
 
 	def bfs(self, target, top_node, visit, traverse=False):
 		"""Breadth-first search on a graph, starting at top_node."""
