@@ -28,7 +28,7 @@ def PlotCDLookup(gplt, ltree, nucleus, feature):
 	nd = ltree.lookup(ltree.root, nucleus)
 	PlotCDFeature(gplt, ltree, nd, feature)
 
-def PlotAllTP(bench, feature, ltreelist=None, withstr='', visit='all'):
+def PlotAllTP(bench, feature, ltreelist=None, withstr='points pointtype 3', visit='all'):
 	data = [] 
 	xmin = Infinity 
 	xmax = -Infinity
@@ -116,8 +116,8 @@ def PlotLRatio(bench, ndigits, ltreelist=None):
 	xmax = max(data.keys())+1
 	bench.gplt('set xrange[' + str(xmin) + ':' + str(xmax) + ']')
 	bench.gplt('set key top right')
-	bench.gplt.plot(Gnuplot.Data(data.items(),with='points lc rgb "cyan"',title="Lmin >= r1 + r2"), \
-	Gnuplot.Data(errdata.items(),with='points lc rgb "red"', title="Lmin < r1 + r2"))
+	bench.gplt.plot(Gnuplot.Data(data.items(),with='points pt 3 lc rgb "cyan"',title="Lmin >= r1 + r2"), \
+	Gnuplot.Data(errdata.items(),with='points pt 4 lc rgb "red"', title="Lmin < r1 + r2"))
 	return errdata
 	#gplt.plot(Gnuplot.Data(data.items(),with='lines'), Gnuplot.Data(errdata.items(),with='lines'))
 
