@@ -339,6 +339,8 @@ class CBTree:
 				else:
 					return self.bfs(target, self.root, self.findNode).next()
 
+	#def traverseToRoot(self, visit, nd):
+		
 
  
 #	def minValue(self, root):

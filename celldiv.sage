@@ -33,10 +33,10 @@ def ValConvert(string_list):
 	val_list.append(Int(string_list[10]))
 	return val_list
 
-#def BFT_Plot(gp, ltree, feature):
+#def BFT_Plot(gplt, ltree, feature):
 #	nodes = ltree.bfs("NotANode", ltree.root, ltree.findNode, True)
 #	for nd in nodes:
-#		PlotCDFeature(gp, ltree, nd, feature)
+#		PlotCDFeature(gplt, ltree, nd, feature)
 		
 def CreateDivTree(nuclei_zip, last_tp=Infinity):
 	#create a module for utils??? - to allow for pickling
@@ -141,7 +141,7 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 
 class EmbryoBench:
 	embryo, conf_file_path, conf_file, EMBRYO_DIR,\
-	CELLDIV_DIR, BENCHMARK_LIST, end_time, nuclei_files, gp \
+	CELLDIV_DIR, BENCHMARK_LIST, end_time, nuclei_files, gplt \
 	= {}, './cpfa.conf', None, '', '', '', {}, [], None
 
 	def saveEmbryoTrees(self):
@@ -156,7 +156,7 @@ class EmbryoBench:
 			emb.genExtraFeatures()
 
 	def __init__(self):
-		self.gp = Gnuplot.Gnuplot(debug=1)
+		self.gplt = Gnuplot.Gnuplot(debug=1)
 		self.conf_file_path='./cpfa.conf'
 		reload = '' 
 		for i in range(0, len(sys.argv)):
