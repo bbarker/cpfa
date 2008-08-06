@@ -116,11 +116,18 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 				tph['L_min']=dist_min
 				if dist_min < radii_sum:
 					tph['diam_overlap_err']=True
-				l_dist = RR(-1)
-				if not l[1]-1 < 0:
-					l_dist = RR(distance((prior_file[l[1]-1][4]/10,prior_file[l[1]-1][5]/10,prior_file[l[1]-1][6]),(l[4]/10,l[5]/10,l[6])))	
-				tph['l']=l_dist
-				tph['l/(L_min/2)']= RR(tph['l']/(tph['L_min']/2))
+				l_dist = l_dist_t = None 
+				if not next_file == []:
+					if l[2] >= 0:
+						l_dist = RR(distance((next_file[l[2]-1][4]/10,next_file[l[2]-1][5]/10,next_file[l[2]-1][6]),(l[4]/10,l[5]/10,l[6])))	
+					if l[3] >= 0:
+						l_dist_t = RR(distance((next_file[l[3]-1][4]/10,next_file[l[3]-1][5]/10,next_file[l[3]-1][6]),(l[4]/10,l[5]/10,l[6])))	
+					l_dist = max(l_dist, l_dist_t)
+					tph['l']=l_dist
+					if tph['l'] != None and tph['L_min'] != None:
+						tph['l/(L_min/2)']= RR(tph['l']/(tph['L_min']/2))
+					else:
+						tph['l/(L_min/2)']= None
 				cur_cd.time_points[i+1]=tph
 				#need to find node if it exists, could use a prior check or tree search  - then append any new data to node
 				if not new_cell or l[1]-1 < 0:		#This is not a new node, append data to existing node

@@ -10,6 +10,12 @@ from path import path
 #import re
 Int = Integer #for shorthand purposes... 
 
+def linewrap(text,linelen):
+	wrapped = ''
+	for i in range(linelen, len(text)+linelen, linelen):
+		wrapped += text[i-linelen:i].rjust(linelen,' ') + "\n"
+	return wrapped
+	
 def PlotCDFeature(gplt, ltree, nd, feature):
 	#nd = ltree.lookup(ltree.root, nucleus)
 	data = []	
@@ -29,9 +35,8 @@ def PlotCDLookup(gplt, ltree, nucleus, feature):
 	PlotCDFeature(gplt, ltree, nd, feature)
 
 def PlotAllTP(bench, feature, ltreelist=None, withstr='points pointtype 3', visit='all'):
-	data = [] 
-	xmin = Infinity 
-	xmax = -Infinity
+	data = {}
+	count = {} 
 	if ltreelist == None:
 		ltreelist = bench.embryo.values()
 	for ltree in ltreelist:
@@ -44,18 +49,28 @@ def PlotAllTP(bench, feature, ltreelist=None, withstr='points pointtype 3', visi
 			if nd != None:
 				if nd.data != None:
 					for tp in nd.data.time_points.keys():
-						data.append([tp,nd.data.time_points[tp].get(feature)])
-						if tp < xmin:
-							xmin = tp
-						if tp > xmax:
-							xmax = tp
+						if nd.data.time_points[tp].get(feature) != None:
+							if data.get(tp) != None:
+								data[tp] += nd.data.time_points[tp].get(feature)
+								count[tp] += 1
+							else:
+								data[tp] = nd.data.time_points[tp].get(feature)
+								count[tp] = 1
+	xmin = min(data.keys())
+	xmax = max(data.keys())
+	for tp in data.keys():
+		if data[tp] != None and data[tp] != RR('NaN'):
+			data[tp] = data[tp]/count[tp]	
 	bench.gplt('set xrange[' + str(xmin) + ':' + str(xmax) + ']')
 	bench.gplt.xlabel('time (minutes)')
-	bench.gplt.ylabel(feature.replace('_',' '))
+	#ylab = linewrap('mean ' + feature.replace('_',' '), 18)
+	ylab = 'mean ' + feature.replace('_',' ')
+	bench.gplt('set ylabel "' + ylab + '" font "Helvetica,10"')
+	#bench.gplt.ylabel('mean ' + feature.replace('_',' '))
 	if withstr == '':
-		bench.gplt.plot(Gnuplot.Data(data))
+		bench.gplt.plot(Gnuplot.Data(data.items()))
 	else:
-		bench.gplt.plot(Gnuplot.Data(data, with=withstr))			
+		bench.gplt.plot(Gnuplot.Data(data.items(), with=withstr))			
 
 
 def PlotLminDist(gplt, ltree):
@@ -69,7 +84,7 @@ def PlotLminDist(gplt, ltree):
 				for tp in nd.data.time_points.keys():
 					data.append([tp,RR(nd.data.time_points[tp].get('L_min')/nd.data.time_points[tp].get('diameter'))])
 	gplt.xlabel('time (minutes)')
-	gplt.ylabel('length ratio of L_{min}/diameter')
+	gplt.ylabel('length ratio of L_{min}/diameter font "Helvetica,13"')
 	gplt('set xrange [0:199]')
 	gplt.plot(Gnuplot.Data(data, with='points lc rgb "red"'))
 
@@ -87,16 +102,17 @@ def PlotLRatio(bench, ndigits, ltreelist=None):
 			if nd != None:
 				if nd.data != None:
 					for tp in nd.data.time_points.keys():
-						if nd.data.time_points[tp].get('diam_overlap_err') == False:
-							if data.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
-								data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+						if nd.data.time_points[tp].get(feature) != None:
+							if nd.data.time_points[tp].get('diam_overlap_err') == False:
+								if data.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
+									data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+								else:
+									data[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
 							else:
-								data[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
-						else:
-							if errdata.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
-								errdata[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
-							else:
-								errdata[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
+								if errdata.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
+									errdata[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+								else:
+									errdata[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
 	errcount = 0
 	count = 0
 	if errdata.get(RR('NaN')):
@@ -111,7 +127,7 @@ def PlotLRatio(bench, ndigits, ltreelist=None):
 	print "Error count is: " + str(errcount) + "\n"
 	print "Percent Error is: " + str(RR(100*errcount/(errcount+count)))
 	bench.gplt.xlabel(feature.replace('_',' '))
-	bench.gplt.ylabel('frequency')
+	bench.gplt('set ylabel "frequency" font "Helvetica,10"')
 	xmin = min(data.keys())-1	
 	xmax = max(data.keys())+1
 	bench.gplt('set xrange[' + str(xmin) + ':' + str(xmax) + ']')
@@ -136,24 +152,93 @@ def PlotDistrib(gplt, ltree, feature, ndigits):
 	gplt.ylabel('frequency')
 	gplt.plot(data.items())
 
+def TreeNavigate(ltree, node):
+	nd = None
+	if isinstance(node,type(ltree.root)):
+		nd = node
+	elif isinstance(node,type('c')):
+		nd = ltree.lookup(ltree.root,node)
+		if nd == None:
+			print "node not found"
+			return -1
+	return
+
+def PlotLineage(gplt, ltree, feature, node, withstr='lines', visit='all', replot=False, titlestr=None):
+	parent = None
+	data = {}
+	if isinstance(node,type(ltree.root)):
+		parent = node
+	elif isinstance(node,type('c')):
+		if ltree.leaf.get(node) != None:
+			parent = ltree.leaf.get(node)
+		else:	
+			parent = ltree.lookup(ltree.root,node)
+		if parent == None:
+			print "node not found"
+			return -1
+	while parent.data != None:
+		for tp in parent.data.time_points.keys():
+			if parent.data.time_points[tp].get(feature) != None:
+				if data.get(tp) != None:
+					data[tp] += parent.data.time_points[tp].get(feature)
+					#count[tp] += 1
+				else:
+					data[tp] = parent.data.time_points[tp].get(feature)
+					#count[tp] = 1
+		parent = parent.parent
+	if len(data) > 0:
+		xmin = min(data.keys())
+		xmax = max(data.keys())
+		gplt('set xrange[' + str(xmin) + ':' + str(xmax) + ']')
+		gplt.xlabel('time (minutes)')
+		#ylab = linewrap('mean ' + feature.replace('_',' '), 18)
+		ylab = feature.replace('_',' ')
+		gplt('set ylabel "' + ylab + '" font "Helvetica,10"')
+		#gplt.ylabel('mean ' + feature.replace('_',' '))
+		if replot:
+			if withstr == '':
+				gplt.replot(Gnuplot.Data(data.items(),inline=1, title=titlestr))
+			else:
+				gplt.replot(Gnuplot.Data(data.items(), with=withstr, inline=1, title=titlestr))			
+		else:
+			if withstr == '':
+				gplt.plot(Gnuplot.Data(data.items(), inline=1, title=titlestr))
+			else:
+				gplt.plot(Gnuplot.Data(data.items(), with=withstr, inline=1, title=titlestr))			
+
+
+def PlotAllLineages(gplt, ltree, feature, withstr='lines', visit='all', term='live', fdir=None, fname=None):
+	gplt('set key top right')
+	count = 0 
+	for leaf in ltree.leaf.keys():
+		if mod(count, 8) == 0:
+			if term == 'live':
+				gplt('set term ' + term)
+			elif term == 'file':
+				gplt('set term postscript enhanced color landscape font "Helvetica" 10')
+				gplt('set output "' + path.joinpath(path(fdir), fname + str(count).rjust(10,'0') +'.ps').strip() + '"') 
+			PlotLineage(gplt, ltree, feature, leaf, 'lines', 'all', False, leaf)
+		else:
+			PlotLineage(gplt, ltree, feature, leaf, 'lines', 'all', True, leaf)
+		count += 1	
 
 def GenReport(bench):
 	reportdir = 'report' + rm_symbols_datetime.sub('',datetime.datetime.now().isoformat())
 	os.mkdir(path.joinpath(path(bench.CELLDIV_DIR), reportdir))
-	bench.gplt('set term postscript enhanced color landscape')
+	bench.gplt('set term postscript enhanced color landscape font "Helvetica" 10')
 	bench.gplt('set output "' + path.joinpath(path(bench.CELLDIV_DIR), reportdir,'000000000000000.ps').strip() + '"')
 	bench.gplt('set multiplot layout 4,2 title "All Embryos"')
 	PlotAllTP(bench, 'diameter', None, 'lines')
 	PlotAllTP(bench, 'total_gfp', None, 'lines')
-	PlotAllTP(bench, 'diameter_fold')
-	PlotAllTP(bench, 'gfp_fold')
+	PlotAllTP(bench, 'diameter_fold', None, 'lines')
+	PlotAllTP(bench, 'gfp_fold', None, 'lines')
 	PlotLRatio(bench, 2, None) 
 	PlotAllTP(bench, 'sister-self_centroid_dist_from_mother', None, 'lines', 'one_child')
 	PlotAllTP(bench, 'ratio_diam_sisterdiam', None, 'lines', 'one_child')
 	PlotAllTP(bench, 'ratio_gfp_sistergfp', None, 'lines', 'one_child')
 	bench.gplt('unset multiplot')
 	for emb in bench.embryo.keys():
-		bench.gplt('set term postscript enhanced color landscape')
+		bench.gplt('set term postscript enhanced color landscape font "Helvetica" 10')
 		bench.gplt('set output "' + path.joinpath(path(bench.CELLDIV_DIR), reportdir, emb +'.ps').strip() + '"')
 		bench.gplt('set multiplot layout 4,2 title "' + emb + '"')
 		PlotAllTP(bench, 'diameter', [bench.embryo[emb]], 'lines')
@@ -166,6 +251,38 @@ def GenReport(bench):
 		PlotAllTP(bench, 'ratio_gfp_sistergfp', [bench.embryo[emb]], 'lines', 'one_child')
 		bench.gplt('unset multiplot')
 	#make this system agnostic later
+	cwd = os.getcwd()
+	os.chdir(bench.CELLDIV_DIR)
 	commands.getoutput('/usr/bin/psjoin ' + reportdir + '/*.ps > ' + reportdir + '.ps') 
 	commands.getoutput('rm -fr ' + reportdir)
+	os.chdir(cwd)
+
+def GenLineageReports(bench):
+	reportdir = path.joinpath(path(bench.CELLDIV_DIR),  'LineageReports' + rm_symbols_datetime.sub('',datetime.datetime.now().isoformat())).strip()
+	os.mkdir(path.joinpath(path(bench.CELLDIV_DIR), reportdir))
+	features = ['diameter', 'total_gfp', 'diameter_fold', 'gfp_fold', 'sister-self_centroid_dist_from_mother', \
+	'ratio_diam_sisterdiam', 'ratio_gfp_sistergfp']
+	cwd = os.getcwd()
+	os.chdir(reportdir)
+	for feature in features:
+		featuredir = path.joinpath(path(bench.CELLDIV_DIR), reportdir, feature)
+		os.mkdir(featuredir)
+		for emb in bench.embryo.keys():
+			PlotAllLineages(bench.gplt, bench.embryo[emb], feature, term='file', fdir=featuredir, fname=emb+'_'+feature) 
+		commands.getoutput('/usr/bin/psjoin ' + featuredir + '/*.ps > ' + path.joinpath(path(reportdir), feature + '.ps')) 
+		#commands.getoutput('rm -fr ' + featuredir)
+	os.chdir(cwd)
+		
+			
+			
+		
+		
+
+
+
+
+
+
+
+
 
