@@ -222,6 +222,12 @@ def PlotAllLineages(gplt, ltree, feature, withstr='lines', visit='all', term='li
 			PlotLineage(gplt, ltree, feature, leaf, 'lines', 'all', True, leaf)
 		count += 1	
 
+def PlotLinealGroup(bench,
+
+#for each emb, for each group, plot feature, PlotLineage
+
+#now, for each cell in a group, foreach embryo, PlotLineage
+
 def GenReport(bench):
 	reportdir = 'report' + rm_symbols_datetime.sub('',datetime.datetime.now().isoformat())
 	os.mkdir(path.joinpath(path(bench.CELLDIV_DIR), reportdir))
@@ -274,11 +280,25 @@ def GenLineageReports(bench):
 	os.chdir(cwd)
 		
 			
-			
-		
-		
+#need to find the first common ancestral cell division for which data exists.
+#then, find the max tp amongst these and shift all others up to this tp.			
+#Actually, add this as a "secondary feature" and save it as part of the embryo bench
 
-
+def GenLineXEmbryo(bench):
+	reportdir = path.joinpath(path(bench.CELLDIV_DIR),  'LineXEmbryo' + rm_symbols_datetime.sub('',datetime.datetime.now().isoformat())).strip()
+	os.mkdir(path.joinpath(path(bench.CELLDIV_DIR), reportdir))
+	features = ['diameter', 'total_gfp', 'diameter_fold', 'gfp_fold', 'sister-self_centroid_dist_from_mother', \
+	'ratio_diam_sisterdiam', 'ratio_gfp_sistergfp']
+	cwd = os.getcwd()
+	os.chdir(reportdir)
+	for feature in features:
+		featuredir = path.joinpath(path(bench.CELLDIV_DIR), reportdir, feature)
+		os.mkdir(featuredir)
+		for emb in bench.embryo.keys():
+			PlotAllLineages(bench.gplt, bench.embryo[emb], feature, term='file', fdir=featuredir, fname=emb+'_'+feature) 
+		commands.getoutput('/usr/bin/psjoin ' + featuredir + '/*.ps > ' + path.joinpath(path(reportdir), feature + '.ps')) 
+		#commands.getoutput('rm -fr ' + featuredir)
+	os.chdir(cwd)
 
 
 
