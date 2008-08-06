@@ -253,15 +253,18 @@ class CBTree:
 		queue = [top_node]
 		while len(queue):
 			new_nodes_at = len(queue)-1
-			curr_node = queue.pop(0)    # Dequeue
+			curr_node = queue.pop(0)    # This should be more logical.. 
 			if not traverse and visit(target, curr_node) != None:
-				yield visit(target, curr_node)
-				return	
+				print dir(visit(target, curr_node))
+				if search(dir(visit(target, curr_node)),'key')[0]:
+					if visit(target, curr_node).key == target:
+						yield visit(target, curr_node)
+						return	
 			elif traverse:
 				if visit(target, curr_node) != None:
-					yield visit(target, curr_node)
-					return	
-				yield curr_node
+					yield  visit(target, curr_node)
+				else:
+					yield curr_node
 			qlen=len(queue)
 			if (curr_node.left != None):
 				queue.extend([curr_node.left])
