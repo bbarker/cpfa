@@ -147,9 +147,46 @@ def CreateDivTree(nuclei_zip, last_tp=Infinity):
 
 
 class EmbryoBench:
-	embryo, conf_file_path, conf_file, EMBRYO_DIR,\
+	fcn_depth, time_norm, embryo, conf_file_path, conf_file, EMBRYO_DIR,\
 	CELLDIV_DIR, BENCHMARK_LIST, end_time, nuclei_files, gplt \
-	= {}, './cpfa.conf', None, '', '', '', {}, [], None
+	= {}, {}, {}, './cpfa.conf', None, '', '', '', {}, [], None 
+
+	def calcTimeNorm(self, poolsize=8):
+		CDTimes = {}
+		common_nodes = set() 
+		minnode = ''
+		minnode_dt = Infinity 
+		minnode_times = []
+		minnode_max_dt = -Infinity
+		for emb in self.embryo.keys():
+			nodes = self.embryo[emb].bfs("NotANode", self.embryo[emb].root, self.embryo[emb].findNode, True)	
+			CDTimes[emb] = {} 
+			count = 0
+			while count < poolsize:
+				nd = nodes.next()
+				if nd == None:
+					continue
+				if nd.data == None:
+					continue
+				CDTimes[emb][nd.key] = max(nd.data.time_points.keys())
+				common_nodes.update([nd.key])
+				count +=1
+		for emb in self.embryo.keys():
+			common_nodes.intersection_update(CDTimes[emb].keys())
+		for ndkey in list(common_nodes):
+			for emb in self.embryo.keys():
+				if CDTimes[emb][ndkey] < minnode_dt:
+					minnode_dt = CDTimes[emb][ndkey]
+					minnode = ndkey
+		for emb in self.embryo.keys():
+			minnode_times.append(CDTimes[emb][minnode])
+		minnode_max_dt = max(minnode_times)
+		for emb in self.embryo.keys():
+			self.time_norm[emb]=minnode_max_dt-CDTimes[emb][minnode]
+		print "first common nucleus is: " + minnode
+		for emb in self.embryo.keys():
+			self.fcn_depth[emb] = self.embryo[emb].getDepth(minnode)
+	
 
 	def saveEmbryoTrees(self):
 		for emb in self.embryo.keys():
@@ -254,3 +291,4 @@ class EmbryoBench:
 				self.embryo[nuc] = CreateDivTree(newest[nuc], self.end_time[nuc])	
 				self.embryo[nuc].genExtraFeatures()
 				self.saveEmbryoTrees()
+		self.calcTimeNorm()

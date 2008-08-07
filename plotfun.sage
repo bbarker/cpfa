@@ -222,7 +222,58 @@ def PlotAllLineages(gplt, ltree, feature, withstr='lines', visit='all', term='li
 			PlotLineage(gplt, ltree, feature, leaf, 'lines', 'all', True, leaf)
 		count += 1	
 
-def PlotLinealGroup(bench,
+def PlotHist(bench, feature, emblist=None, withstr='', visit='all'):
+	data = {}
+	count = {}
+	stdv
+	dstdv = {}
+	dmean = {}
+	if emblist == None:
+		emblist = bench.embryo.keys()
+	for emb in emblist:
+		nodes = None 
+		if visit == 'all':
+			nodes = bench.embryo[emb].bfs("NotANode", bench.embryo[emb].root, bench.embryo[emb].findNode, True)	
+		elif visit == 'one_child':
+			nodes = bench.embryo[emb].bfs("NotANode", bench.embryo[emb].root, bench.embryo[emb].aChild, True)
+		for nd in nodes:
+			if nd != None:
+				if nd.data != None:
+					for tp in range(min(nd.data.time_points.keys()), min(min(nd.data.time_points.keys())+5, max(nd.data.time_points.keys())+1)):
+						if nd.data.time_points[tp].get(feature) != None:
+							if nd.data.time_points[tp].get('diam_overlap_err') == False:
+								if data.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
+									data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+								else:
+									data[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
+							else:
+								if errdata.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
+									errdata[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
+								else:
+									errdata[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
+	errcount = 0
+	count = 0
+	if errdata.get(RR('NaN')):
+		del errdata[RR('NaN')]
+	if data.get(RR('NaN')):
+		del data[RR('NaN')]
+	for k in errdata.keys():
+		errcount += errdata[k]
+	for k in data.keys():
+		count += data[k]
+	print "Non-error count is: " + str(count) + "\n"
+	print "Error count is: " + str(errcount) + "\n"
+	print "Percent Error is: " + str(RR(100*errcount/(errcount+count)))
+	bench.gplt.xlabel(feature.replace('_',' '))
+	bench.gplt('set ylabel "frequency" font "Helvetica,10"')
+	xmin = min(data.keys())-1	
+	xmax = max(data.keys())+1
+	bench.gplt('set xrange[' + str(xmin) + ':' + str(xmax) + ']')
+	bench.gplt('set key top right')
+	bench.gplt.plot(Gnuplot.Data(data.items(),with='points pt 3 lc rgb "cyan"',title="Lmin >= r1 + r2"), \
+	Gnuplot.Data(errdata.items(),with='points pt 4 lc rgb "red"', title="Lmin < r1 + r2"))
+	return errdata
+#def PlotLinealGroup(bench,
 
 #for each emb, for each group, plot feature, PlotLineage
 
