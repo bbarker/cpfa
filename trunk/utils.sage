@@ -342,6 +342,16 @@ class CBTree:
 				else:
 					return self.bfs(target, self.root, self.findNode).next()
 
+	def getDepth(self, target):
+		node = target
+		if type(target) == type('a'):
+			node = lookup(self.root, target)
+		count = 0
+		while node != self.root:
+			count += 1
+			node = node.parent 	
+		return count
+
 	#def traverseToRoot(self, visit, nd):
 		
 
