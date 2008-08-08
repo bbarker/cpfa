@@ -7,9 +7,32 @@ import sys
 import Gnuplot
 import commands
 from path import path
+from scipy import polyfit
+
 #import re
 Int = Integer #for shorthand purposes... 
 
+def normLinearData(data_in):
+	data_out = []
+	(ar,br) = polyfit([x[0] for x in data], [x[1] for x in data], 1)
+	x0 = min([x[0] for x in data])
+	xf = max([x[0] for x in data])
+	def f_a(x):
+		return RR(ar*x+br)
+	alpha = 0
+	f_x0 = f_a(x0)
+	f_xf = f_a(xf)
+	if ar >= 0:
+		alpha = f_xf - f_x0 
+	else:
+		alpha = f_x0 - f_xf
+	def f_c(x):
+		return RR((br-alpha)-ar*x)
+	for datum in data_in:
+		data_out.append( [datum[0], f_c(datum[1])] )
+	print data_out
+	return data_out
+	
 def linewrap(text,linelen):
 	wrapped = ''
 	for i in range(linelen, len(text)+linelen, linelen):
@@ -56,6 +79,7 @@ def PlotAllTP(bench, feature, ltreelist=None, withstr='points pointtype 3', visi
 							else:
 								data[tp] = nd.data.time_points[tp].get(feature)
 								count[tp] = 1
+	#data_norm = dict(normLinearData(data.items()))
 	xmin = min(data.keys())
 	xmax = max(data.keys())
 	for tp in data.keys():
@@ -69,8 +93,10 @@ def PlotAllTP(bench, feature, ltreelist=None, withstr='points pointtype 3', visi
 	#bench.gplt.ylabel('mean ' + feature.replace('_',' '))
 	if withstr == '':
 		bench.gplt.plot(Gnuplot.Data(data.items()))
+	#	bench.gplt.replot(Gnuplot.Data(data_norm.itmems()))
 	else:
 		bench.gplt.plot(Gnuplot.Data(data.items(), with=withstr))			
+	#	bench.gplt.replot(Gnuplot.Data(data_norm.itmems(), with=withstr))
 
 
 def PlotLminDist(gplt, ltree):
@@ -186,6 +212,7 @@ def PlotLineage(gplt, ltree, feature, node, withstr='lines', visit='all', replot
 					data[tp] = parent.data.time_points[tp].get(feature)
 					#count[tp] = 1
 		parent = parent.parent
+	data = dict(normLinearData(data.items()))
 	if len(data) > 0:
 		xmin = min(data.keys())
 		xmax = max(data.keys())
@@ -223,10 +250,9 @@ def PlotAllLineages(gplt, ltree, feature, withstr='lines', visit='all', term='li
 		count += 1	
 
 def PlotHist(bench, feature, emblist=None, withstr='', visit='all'):
+	alldata = []
 	data = {}
-	count = {}
-	stdv
-	dstdv = {}
+	dstdv = [] 
 	dmean = {}
 	if emblist == None:
 		emblist = bench.embryo.keys()
@@ -239,40 +265,34 @@ def PlotHist(bench, feature, emblist=None, withstr='', visit='all'):
 		for nd in nodes:
 			if nd != None:
 				if nd.data != None:
-					for tp in range(min(nd.data.time_points.keys()), min(min(nd.data.time_points.keys())+5, max(nd.data.time_points.keys())+1)):
+					cdc = 0
+					for tp in range(min(nd.data.time_points.keys()), min(min(nd.data.time_points.keys())+6, max(nd.data.time_points.keys())+1)):
 						if nd.data.time_points[tp].get(feature) != None:
-							if nd.data.time_points[tp].get('diam_overlap_err') == False:
-								if data.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
-									data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
-								else:
-									data[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
+							if data.get(cdc) != None:
+								data[cdc] += [nd.data.time_points[tp].get(feature)]
 							else:
-								if errdata.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
-									errdata[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
-								else:
-									errdata[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
-	errcount = 0
-	count = 0
-	if errdata.get(RR('NaN')):
-		del errdata[RR('NaN')]
-	if data.get(RR('NaN')):
-		del data[RR('NaN')]
-	for k in errdata.keys():
-		errcount += errdata[k]
-	for k in data.keys():
-		count += data[k]
-	print "Non-error count is: " + str(count) + "\n"
-	print "Error count is: " + str(errcount) + "\n"
-	print "Percent Error is: " + str(RR(100*errcount/(errcount+count)))
+								data[cdc]=[]
+								data[cdc].append(nd.data.time_points[tp].get(feature))
+							#later on make this friendly with time_norm for multi-embryo analysis
+							alldata += [tp, nd.data.time_points[tp].get(feature)]
+						cdc +=1
+	alldata = normLinearData(alldata)
+	for cdc in data.keys():
+		dmean[cdc] = sageobj(r.mean(data[cdc]))
+		stdv = sqrt(sageobj(r.var(data[cdc])))	
+		dstdv.append([cdc, dmean[cdc]-stdv])
+		dstdv.append([cdc, dmean[cdc]+stdv])
+		print "success"
 	bench.gplt.xlabel(feature.replace('_',' '))
 	bench.gplt('set ylabel "frequency" font "Helvetica,10"')
-	xmin = min(data.keys())-1	
-	xmax = max(data.keys())+1
+	xmin = 0	
+	xmax = 5 
 	bench.gplt('set xrange[' + str(xmin) + ':' + str(xmax) + ']')
 	bench.gplt('set key top right')
-	bench.gplt.plot(Gnuplot.Data(data.items(),with='points pt 3 lc rgb "cyan"',title="Lmin >= r1 + r2"), \
-	Gnuplot.Data(errdata.items(),with='points pt 4 lc rgb "red"', title="Lmin < r1 + r2"))
-	return errdata
+	bench.gplt.plot(Gnuplot.Data(dmean.items(),with='points pt 3 lc rgb "cyan"',title="mean"), \
+	Gnuplot.Data(dstdv,with='points pt 4 lc rgb "red"', title="one standard deviation"))
+
+
 #def PlotLinealGroup(bench,
 
 #for each emb, for each group, plot feature, PlotLineage
