@@ -12,8 +12,7 @@ from scipy import polyfit
 #import re
 Int = Integer #for shorthand purposes... 
 
-def normLinearData(data_in):
-	data_out = []
+def getNormInfo(data_in):
 	(ar,br) = polyfit([x[0] for x in data], [x[1] for x in data], 1)
 	x0 = min([x[0] for x in data])
 	xf = max([x[0] for x in data])
@@ -28,8 +27,13 @@ def normLinearData(data_in):
 		alpha = f_x0 - f_xf
 	def f_c(x):
 		return RR((br-alpha)-ar*x)
+	return (f_c, f_x0, f_xf)
+
+def normLinearData(data_in):
+	data_out = []
+	(f_c, f_x0, f_xf) = getNormInfo(data_in)	
 	for datum in data_in:
-		data_out.append( [datum[0], f_c(datum[1])] )
+		data_out.append( [datum[0], datum[1] * 1/( f_c(datum[1])/f_x0 )] )
 	print data_out
 	return data_out
 	
@@ -127,8 +131,8 @@ def PlotLRatio(bench, ndigits, ltreelist=None):
 		for nd in nodes:
 			if nd != None:
 				if nd.data != None:
-					for tp in nd.data.time_points.keys():
-						if nd.data.time_points[tp].get(feature) != None:
+					for tp in nd.data.time_points.keys():  #second condition is used for separation of CD distribution!!! may need to remove!
+						if nd.data.time_points[tp].get(feature) != None and tp > min(nd.data.time_points.keys())+6: 
 							if nd.data.time_points[tp].get('diam_overlap_err') == False:
 								if data.get(round(nd.data.time_points[tp].get(feature),ndigits)) != None:
 									data[round(nd.data.time_points[tp].get(feature),ndigits)] += 1
@@ -141,6 +145,7 @@ def PlotLRatio(bench, ndigits, ltreelist=None):
 									errdata[round(nd.data.time_points[tp].get(feature),ndigits)] = 1
 	errcount = 0
 	count = 0
+	over1 = 0
 	if errdata.get(RR('NaN')):
 		del errdata[RR('NaN')]
 	if data.get(RR('NaN')):
@@ -149,17 +154,22 @@ def PlotLRatio(bench, ndigits, ltreelist=None):
 		errcount += errdata[k]
 	for k in data.keys():
 		count += data[k]
+	for k in data.keys():
+		if k >= 1:
+			over1 += data[k]	
 	print "Non-error count is: " + str(count) + "\n"
 	print "Error count is: " + str(errcount) + "\n"
 	print "Percent Error is: " + str(RR(100*errcount/(errcount+count)))
+	print "Norm over 1 is: " + str(over1) + "\n"
 	bench.gplt.xlabel(feature.replace('_',' '))
 	bench.gplt('set ylabel "frequency" font "Helvetica,10"')
 	xmin = min(data.keys())-1	
 	xmax = max(data.keys())+1
 	bench.gplt('set xrange[' + str(xmin) + ':' + str(xmax) + ']')
 	bench.gplt('set key top right')
-	bench.gplt.plot(Gnuplot.Data(data.items(),with='points pt 3 lc rgb "cyan"',title="Lmin >= r1 + r2"), \
-	Gnuplot.Data(errdata.items(),with='points pt 4 lc rgb "red"', title="Lmin < r1 + r2"))
+	#bench.gplt.plot(Gnuplot.Data(data.items(),with='points pt 3 lc rgb "cyan"',title="Lmin >= r1 + r2"), \
+	#Gnuplot.Data(errdata.items(),with='points pt 4 lc rgb "red"', title="Lmin < r1 + r2"))
+	bench.gplt.plot(Gnuplot.Data(data.items(),with='points pt 3 lc rgb "cyan"',title="Lmin >= r1 + r2"))
 	return errdata
 	#gplt.plot(Gnuplot.Data(data.items(),with='lines'), Gnuplot.Data(errdata.items(),with='lines'))
 
@@ -212,7 +222,7 @@ def PlotLineage(gplt, ltree, feature, node, withstr='lines', visit='all', replot
 					data[tp] = parent.data.time_points[tp].get(feature)
 					#count[tp] = 1
 		parent = parent.parent
-	data = dict(normLinearData(data.items()))
+	#data = dict(normLinearData(data.items()))
 	if len(data) > 0:
 		xmin = min(data.keys())
 		xmax = max(data.keys())
@@ -276,7 +286,6 @@ def PlotHist(bench, feature, emblist=None, withstr='', visit='all'):
 							#later on make this friendly with time_norm for multi-embryo analysis
 							alldata += [tp, nd.data.time_points[tp].get(feature)]
 						cdc +=1
-	alldata = normLinearData(alldata)
 	for cdc in data.keys():
 		dmean[cdc] = sageobj(r.mean(data[cdc]))
 		stdv = sqrt(sageobj(r.var(data[cdc])))	
@@ -288,7 +297,7 @@ def PlotHist(bench, feature, emblist=None, withstr='', visit='all'):
 	xmin = 0	
 	xmax = 5 
 	bench.gplt('set xrange[' + str(xmin) + ':' + str(xmax) + ']')
-	bench.gplt('set key top right')
+	bench.gplt('set key bottom right')
 	bench.gplt.plot(Gnuplot.Data(dmean.items(),with='points pt 3 lc rgb "cyan"',title="mean"), \
 	Gnuplot.Data(dstdv,with='points pt 4 lc rgb "red"', title="one standard deviation"))
 
