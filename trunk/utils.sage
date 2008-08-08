@@ -345,7 +345,7 @@ class CBTree:
 	def getDepth(self, target):
 		node = target
 		if type(target) == type('a'):
-			node = lookup(self.root, target)
+			node = self.lookup(self.root, target)
 		count = 0
 		while node != self.root:
 			count += 1
